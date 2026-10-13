@@ -1,14 +1,16 @@
 "use client";
 
-import { Route, Sparkles, Wand2, Zap, type LucideIcon } from "lucide-react";
+import { Printer, Route, Sparkles, WandSparkles, Zap, type LucideIcon } from "lucide-react";
 import { useId, useState } from "react";
 
+import { InputsSummary, SummaryItem } from "@/components/inputs-summary";
 import { JobDescriptionField } from "@/components/job-description-field";
 import { SkillsPanel } from "@/components/skills-panel";
 import { Alert } from "@/components/ui/alert";
-import { Button } from "@/components/ui/button";
+import { Button, TextButton } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { PageHeader } from "@/components/ui/page-header";
+import { Segmented } from "@/components/ui/segmented";
 import { EmptyState, Skeleton } from "@/components/ui/stat";
 import {
   inputsChanged,
@@ -35,15 +37,16 @@ export function SkillGapAnalysis() {
   const job = useRoadmapJob();
   const system = useSystemStatus();
   const [chosenMode, setChosenMode] = useState<RoadmapMode | null>(null);
+  const [editing, setEditing] = useState(false);
   const modeGroup = useId();
 
   const skills = profile?.skills ?? [];
   const jobText = jobDescription ?? "";
   const weeks = storedWeeks ?? 4;
   const running = job.status === "running";
+  const stale = saved ? inputsChanged(saved.request, skills, jobText) || saved.request.targetWeeks !== weeks : false;
+  const showForm = !saved || editing;
 
-  // AI is selectable unless we know it can't work. An older backend
-  // without the status endpoint reports ai = null; let the user try.
   const aiBlockedReason =
     system.backend === "offline"
       ? "The backend is offline."
@@ -52,122 +55,146 @@ export function SkillGapAnalysis() {
         : null;
   const aiReady = system.backend === "online" && system.ai?.available === true;
   const mode: RoadmapMode =
-    chosenMode === "ai" && aiBlockedReason
-      ? "quick"
-      : chosenMode ?? (aiReady ? "ai" : "quick");
+    chosenMode === "ai" && aiBlockedReason ? "quick" : (chosenMode ?? (aiReady ? "ai" : "quick"));
 
   const problem =
     jobText.trim().length < LIMITS.minJobDescription
       ? `Add a job description of at least ${LIMITS.minJobDescription} characters.`
       : null;
 
-  function generate() {
+  function generate(useMode: RoadmapMode = mode) {
     if (problem || running) return;
-    void startRoadmap(mode, { skills, jobDescription: jobText, targetWeeks: weeks });
+    setEditing(false);
+    void startRoadmap(useMode, { skills, jobDescription: jobText, targetWeeks: weeks });
   }
 
   return (
     <>
       <PageHeader
-        eyebrow="Step 3 · Roadmap"
-        icon={<Route className="size-3.5" aria-hidden />}
+        eyebrow="Step 3 of 3"
         title="Skill Gap Roadmap"
-        description="Prioritize the skills to strengthen for your target job and get a week-by-week plan with practical projects."
+        description="Prioritize the skills to strengthen for your target job, then follow a week-by-week plan with projects and check off what you learn."
+        actions={
+          saved && !showForm ? (
+            <Button variant="secondary" onClick={() => window.print()} icon={<Printer aria-hidden />}>
+              Print or save PDF
+            </Button>
+          ) : undefined
+        }
       />
 
-      <Card className="print:hidden">
-        <div className="grid gap-8 lg:grid-cols-[minmax(0,1fr)_minmax(0,22rem)]">
-          <div className="space-y-6">
-            <SkillsPanel />
-            <JobDescriptionField rows={8} />
-          </div>
+      {!ready ? (
+        <Skeleton className="h-96" />
+      ) : showForm ? (
+        <Card className="print-hidden">
+          <div className="grid gap-8 lg:grid-cols-[minmax(0,1fr)_minmax(0,21rem)]">
+            <div className="space-y-6">
+              <SkillsPanel />
+              <JobDescriptionField rows={8} />
+            </div>
 
-          <div className="space-y-6 lg:border-l lg:border-line lg:pl-8">
-            <WeeksPicker value={weeks} disabled={running} />
-
-            <fieldset disabled={running}>
-              <legend className="mb-2 text-sm font-medium text-ink">Analysis type</legend>
-              <div className="space-y-2">
-                <ModeOption
-                  value="quick"
-                  name={modeGroup}
-                  current={mode}
-                  onSelect={setChosenMode}
-                  icon={Zap}
-                  title="Quick plan"
-                  meta="Instant"
-                  description="Rule-based priorities and a weekly plan from a curated curriculum."
-                />
-                <ModeOption
-                  value="ai"
-                  name={modeGroup}
-                  current={mode}
-                  onSelect={setChosenMode}
-                  icon={Sparkles}
-                  title="AI-enhanced"
-                  meta={`About ${Math.round(AI_EXPECTED_SECONDS / 60)} min`}
-                  description="Adds a personal summary, gap explanations, project ideas and interview topics from your local AI model."
-                  disabledReason={aiBlockedReason}
+            <div className="space-y-6 lg:border-l lg:border-line lg:pl-8">
+              <div>
+                <p className="mb-2 text-sm font-medium text-ink">Duration</p>
+                <Segmented
+                  label="Roadmap duration in weeks"
+                  value={weeks}
+                  disabled={running}
+                  onChange={(value) => targetWeeksStore.set(value)}
+                  options={ROADMAP_WEEK_OPTIONS.map((option) => ({ value: option as number, label: `${option}w` }))}
                 />
               </div>
-              {aiBlockedReason && (
-                <button
-                  type="button"
-                  onClick={() => void refreshSystemStatus()}
-                  className="mt-2 text-xs text-brand-soft hover:underline"
-                >
-                  Check AI availability again
-                </button>
-              )}
-            </fieldset>
 
-            <div>
-              <Button
-                onClick={generate}
-                disabled={!ready || problem !== null || running}
-                size="lg"
-                className="w-full"
-                icon={<Wand2 className="size-4" aria-hidden />}
-              >
-                {running ? "Generating…" : saved ? "Generate a new roadmap" : "Generate my roadmap"}
-              </Button>
-              <p className="mt-2 text-center text-xs leading-5 text-ink-faint">
-                {ready && problem
-                  ? problem
-                  : ready && skills.length === 0
-                    ? "No skills listed. The plan will start from the fundamentals."
-                    : mode === "ai"
-                      ? "Runs on your computer. You can visit other pages while it works."
-                      : "Uses your skills, the job description and the AI Engineer path."}
-              </p>
+              <fieldset disabled={running}>
+                <legend className="mb-2 text-sm font-medium text-ink">Analysis</legend>
+                <div className="space-y-2">
+                  <ModeOption
+                    value="quick"
+                    name={modeGroup}
+                    current={mode}
+                    onSelect={setChosenMode}
+                    icon={Zap}
+                    title="Quick plan"
+                    meta="Instant"
+                    description="Rule-based priorities and a weekly plan from a curated curriculum."
+                  />
+                  <ModeOption
+                    value="ai"
+                    name={modeGroup}
+                    current={mode}
+                    onSelect={setChosenMode}
+                    icon={Sparkles}
+                    title="AI-enhanced"
+                    meta={`~${Math.round(AI_EXPECTED_SECONDS / 60)} min`}
+                    description="Adds a personal summary, gap explanations, project ideas and interview topics from your local model."
+                    disabledReason={aiBlockedReason}
+                  />
+                </div>
+                {aiBlockedReason && (
+                  <TextButton className="mt-2" onClick={() => void refreshSystemStatus()}>
+                    Check AI availability again
+                  </TextButton>
+                )}
+              </fieldset>
+
+              <div>
+                <Button
+                  onClick={() => generate()}
+                  disabled={problem !== null || running}
+                  size="lg"
+                  className="w-full"
+                  icon={<WandSparkles aria-hidden />}
+                >
+                  {running ? "Generating…" : saved ? "Generate new roadmap" : "Generate my roadmap"}
+                </Button>
+                {saved && !running && (
+                  <Button variant="ghost" className="mt-2 w-full" onClick={() => setEditing(false)}>
+                    Keep current roadmap
+                  </Button>
+                )}
+                <p className="mt-3 text-center text-xs leading-5 text-ink-faint">
+                  {problem
+                    ? problem
+                    : skills.length === 0
+                      ? "No skills listed, so the plan starts from the fundamentals."
+                      : mode === "ai"
+                        ? "Runs on your computer. You can browse other pages while it works."
+                        : "Based on your skills, the job description and the AI Engineer path."}
+                </p>
+              </div>
             </div>
           </div>
-        </div>
-      </Card>
+        </Card>
+      ) : (
+        <InputsSummary
+          skills={skills}
+          jobDescription={jobText}
+          stale={stale}
+          onEdit={() => setEditing(true)}
+          extra={
+            <>
+              <SummaryItem label="Duration" value={`${saved.request.targetWeeks} weeks`} />
+              <SummaryItem label="Type" value={saved.mode === "ai" ? "AI-enhanced" : "Quick plan"} />
+            </>
+          }
+        />
+      )}
 
-      <div className="mt-8 space-y-6">
+      <div className="mt-6 space-y-6">
         {job.status === "running" && <RoadmapProgress mode={job.mode} startedAt={job.startedAt} />}
 
         {job.status === "error" && (
           <Alert
             tone="error"
-            title={job.mode === "ai" ? "The AI roadmap could not be generated" : "The roadmap could not be generated"}
+            title={job.mode === "ai" ? "The AI roadmap couldn't be generated" : "The roadmap couldn't be generated"}
             onDismiss={dismissRoadmapError}
             actions={
               <>
-                <Button size="sm" onClick={generate} disabled={problem !== null}>
+                <Button size="sm" onClick={() => generate(job.mode)} disabled={problem !== null}>
                   Try again
                 </Button>
                 {job.mode === "ai" && (
-                  <Button
-                    size="sm"
-                    variant="secondary"
-                    disabled={problem !== null}
-                    onClick={() => {
-                      setChosenMode("quick");
-                      void startRoadmap("quick", { skills, jobDescription: jobText, targetWeeks: weeks });
-                    }}
-                  >
+                  <Button size="sm" variant="secondary" disabled={problem !== null} onClick={() => generate("quick")}>
                     Use a quick plan instead
                   </Button>
                 )}
@@ -178,61 +205,22 @@ export function SkillGapAnalysis() {
           </Alert>
         )}
 
-        {!ready ? (
-          <Skeleton className="h-72" />
-        ) : saved ? (
-          <RoadmapResults
-            saved={saved}
-            stale={
-              inputsChanged(saved.request, skills, jobText) || saved.request.targetWeeks !== weeks
-            }
-          />
+        {ready && saved ? (
+          <RoadmapResults saved={saved} stale={stale} onEdit={() => setEditing(true)} />
         ) : (
+          ready &&
           job.status !== "running" && (
-            <Card>
+            <Card tone="flat">
               <EmptyState
-                icon={<Route className="size-6" aria-hidden />}
+                icon={<Route aria-hidden />}
                 title="Your roadmap will appear here"
-                description="Choose a duration and analysis type, then generate. Each week comes with topics, a project milestone and a deliverable."
+                description="Pick a duration and analysis type, then generate. Each week comes with topics to tick off, a project milestone and a deliverable."
               />
             </Card>
           )
         )}
       </div>
     </>
-  );
-}
-
-function WeeksPicker({ value, disabled }: { value: number; disabled: boolean }) {
-  const name = useId();
-  return (
-    <fieldset disabled={disabled}>
-      <legend className="mb-2 text-sm font-medium text-ink">Roadmap duration</legend>
-      <div className="grid grid-cols-5 gap-1 rounded-xl border border-line-strong bg-canvas/60 p-1">
-        {ROADMAP_WEEK_OPTIONS.map((option) => (
-          <label
-            key={option}
-            className={cn(
-              "flex cursor-pointer items-center justify-center rounded-lg py-2 text-sm transition-colors",
-              "has-[:focus-visible]:outline-2 has-[:focus-visible]:outline-brand",
-              option === value ? "bg-brand text-white" : "text-ink-muted hover:bg-white/[0.05] hover:text-ink",
-            )}
-          >
-            <input
-              type="radio"
-              name={name}
-              value={option}
-              checked={option === value}
-              onChange={() => targetWeeksStore.set(option)}
-              className="sr-only"
-            />
-            {option}
-            <span className="sr-only"> weeks</span>
-          </label>
-        ))}
-      </div>
-      <p className="mt-1.5 text-xs text-ink-faint">Weeks</p>
-    </fieldset>
   );
 }
 
@@ -263,13 +251,13 @@ function ModeOption({
   return (
     <label
       className={cn(
-        "flex gap-3 rounded-xl border p-3.5 transition-colors",
-        "has-[:focus-visible]:outline-2 has-[:focus-visible]:outline-brand",
+        "flex gap-3 rounded-xl p-3.5 transition-[background-color,box-shadow]",
+        "has-[:focus-visible]:outline-2 has-[:focus-visible]:outline-offset-2 has-[:focus-visible]:outline-brand",
         disabled
-          ? "cursor-not-allowed border-line opacity-60"
+          ? "cursor-not-allowed bg-surface-2/50 opacity-60"
           : selected
-            ? "cursor-pointer border-brand/60 bg-brand/[0.08]"
-            : "cursor-pointer border-line hover:border-line-strong hover:bg-white/[0.02]",
+            ? "cursor-pointer bg-brand-tint shadow-[0_0_0_1.5px_var(--brand)]"
+            : "cursor-pointer bg-surface-2/70 hover:bg-surface-2",
       )}
     >
       <input
@@ -284,7 +272,7 @@ function ModeOption({
       <span
         className={cn(
           "flex size-8 shrink-0 items-center justify-center rounded-lg",
-          selected ? "bg-brand text-white" : "bg-white/[0.05] text-ink-muted",
+          selected ? "bg-brand text-on-brand" : "bg-surface text-ink-muted shadow-card",
         )}
       >
         <Icon className="size-4" aria-hidden />
@@ -292,7 +280,7 @@ function ModeOption({
       <span className="min-w-0">
         <span className="flex items-center gap-2">
           <span className="text-sm font-medium text-ink">{title}</span>
-          <span className="rounded-md bg-white/[0.06] px-1.5 py-0.5 text-[10px] font-medium uppercase tracking-wide text-ink-muted">
+          <span className="rounded-md bg-surface px-1.5 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-ink-muted shadow-card">
             {meta}
           </span>
         </span>

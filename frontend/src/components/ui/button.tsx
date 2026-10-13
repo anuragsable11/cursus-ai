@@ -8,21 +8,21 @@ type Variant = "primary" | "secondary" | "ghost" | "danger";
 type Size = "sm" | "md" | "lg";
 
 const base =
-  "inline-flex items-center justify-center gap-2 rounded-xl font-medium transition-colors " +
-  "focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand " +
-  "disabled:cursor-not-allowed disabled:opacity-50";
+  "inline-flex shrink-0 items-center justify-center gap-2 rounded-xl font-medium whitespace-nowrap " +
+  "transition-[background-color,color,box-shadow,transform] duration-150 active:scale-[0.98] " +
+  "disabled:pointer-events-none disabled:opacity-50";
 
 const variants: Record<Variant, string> = {
-  primary: "bg-brand text-white shadow-sm shadow-brand/20 hover:bg-brand-strong",
-  secondary: "border border-line-strong bg-surface-2 text-ink hover:bg-white/[0.08]",
-  ghost: "text-ink-muted hover:bg-white/[0.06] hover:text-ink",
-  danger: "border border-danger/30 bg-danger/10 text-danger hover:bg-danger/20",
+  primary: "bg-brand text-on-brand shadow-[0_1px_0_rgb(0_0_0/0.08)_inset,0_6px_16px_-8px_var(--brand)] hover:bg-brand-hover",
+  secondary: "bg-surface text-ink shadow-card hover:bg-surface-2",
+  ghost: "text-ink-muted hover:bg-surface-2 hover:text-ink",
+  danger: "bg-critical-tint text-critical hover:bg-critical/20",
 };
 
 const sizes: Record<Size, string> = {
-  sm: "h-8 px-3 text-xs",
-  md: "h-10 px-4 text-sm",
-  lg: "h-12 px-5 text-sm",
+  sm: "h-8 px-3 text-xs [&_svg]:size-3.5",
+  md: "h-10 px-4 text-sm [&_svg]:size-4",
+  lg: "h-12 px-5 text-sm [&_svg]:size-4",
 };
 
 export function buttonClasses(variant: Variant = "primary", size: Size = "md", className?: string) {
@@ -55,7 +55,7 @@ export function Button({
       aria-busy={loading || undefined}
       {...props}
     >
-      {loading ? <LoaderCircle className="size-4 animate-spin" aria-hidden /> : icon}
+      {loading ? <LoaderCircle className="animate-spin" aria-hidden /> : icon}
       {children}
     </button>
   );
@@ -67,18 +67,27 @@ type ButtonLinkProps = ComponentProps<typeof Link> & {
   icon?: ReactNode;
 };
 
-export function ButtonLink({
-  variant = "primary",
-  size = "md",
-  icon,
-  className,
-  children,
-  ...props
-}: ButtonLinkProps) {
+export function ButtonLink({ variant = "primary", size = "md", icon, className, children, ...props }: ButtonLinkProps) {
   return (
     <Link className={buttonClasses(variant, size, className)} {...props}>
       {icon}
       {children}
     </Link>
+  );
+}
+
+/** A quiet inline text action, for secondary links inside copy. */
+export function TextButton({ className, children, type = "button", ...props }: ComponentProps<"button">) {
+  return (
+    <button
+      type={type}
+      className={cn(
+        "inline-flex items-center gap-1.5 rounded-md text-xs font-medium text-brand-ink hover:underline disabled:opacity-50 [&_svg]:size-3.5",
+        className,
+      )}
+      {...props}
+    >
+      {children}
+    </button>
   );
 }

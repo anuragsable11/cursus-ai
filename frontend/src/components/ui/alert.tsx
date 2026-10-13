@@ -6,22 +6,10 @@ import { cn } from "@/lib/cn";
 type Tone = "error" | "success" | "info" | "warning";
 
 const tones: Record<Tone, { box: string; icon: ReactNode }> = {
-  error: {
-    box: "border-danger/25 bg-danger/[0.08] text-red-200",
-    icon: <CircleAlert className="size-5 text-danger" aria-hidden />,
-  },
-  success: {
-    box: "border-success/25 bg-success/[0.08] text-emerald-100",
-    icon: <CircleCheck className="size-5 text-success" aria-hidden />,
-  },
-  info: {
-    box: "border-brand/25 bg-brand/[0.07] text-violet-100",
-    icon: <Info className="size-5 text-brand-soft" aria-hidden />,
-  },
-  warning: {
-    box: "border-warning/25 bg-warning/[0.08] text-amber-100",
-    icon: <TriangleAlert className="size-5 text-warning" aria-hidden />,
-  },
+  error: { box: "bg-critical-tint", icon: <CircleAlert className="size-4 text-critical" aria-hidden /> },
+  success: { box: "bg-good-tint", icon: <CircleCheck className="size-4 text-good" aria-hidden /> },
+  info: { box: "bg-brand-tint", icon: <Info className="size-4 text-brand-ink" aria-hidden /> },
+  warning: { box: "bg-warning-tint", icon: <TriangleAlert className="size-4 text-warning" aria-hidden /> },
 };
 
 type AlertProps = {
@@ -37,12 +25,12 @@ export function Alert({ tone = "info", title, children, actions, onDismiss, clas
   return (
     <div
       role={tone === "error" ? "alert" : "status"}
-      className={cn("flex gap-3 rounded-xl border p-4 text-sm leading-6", tones[tone].box, className)}
+      className={cn("flex gap-3 rounded-xl p-3.5 text-sm leading-6 text-ink", tones[tone].box, className)}
     >
-      <span className="mt-0.5 shrink-0">{tones[tone].icon}</span>
+      <span className="mt-1 shrink-0">{tones[tone].icon}</span>
       <div className="min-w-0 flex-1">
-        {title && <p className="font-medium text-ink">{title}</p>}
-        {children && <div className={cn(Boolean(title) && "mt-1", "text-ink-muted")}>{children}</div>}
+        {title && <p className="font-medium">{title}</p>}
+        {children && <div className={cn(Boolean(title) && "mt-0.5", "text-ink-muted")}>{children}</div>}
         {actions && <div className="mt-3 flex flex-wrap gap-2">{actions}</div>}
       </div>
       {onDismiss && (
@@ -50,7 +38,7 @@ export function Alert({ tone = "info", title, children, actions, onDismiss, clas
           type="button"
           onClick={onDismiss}
           aria-label="Dismiss"
-          className="-m-1 h-fit rounded-md p-1 text-ink-faint hover:bg-white/10 hover:text-ink"
+          className="-m-1 h-fit rounded-md p-1 text-ink-faint hover:bg-ink/10 hover:text-ink"
         >
           <X className="size-4" aria-hidden />
         </button>

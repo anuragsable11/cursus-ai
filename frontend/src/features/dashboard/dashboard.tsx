@@ -1,327 +1,357 @@
 "use client";
 
+import Link from "next/link";
 import {
   ArrowRight,
   BriefcaseBusiness,
-  CircleCheck,
-  Cpu,
+  Check,
   FileText,
   LoaderCircle,
   Route,
-  Server,
   Sparkles,
   Trash2,
   type LucideIcon,
 } from "lucide-react";
 
 import { Button, ButtonLink } from "@/components/ui/button";
-import { Card } from "@/components/ui/card";
-import { Chip, ChipList } from "@/components/ui/chip";
+import { Card, SectionLabel } from "@/components/ui/card";
+import { ChipList } from "@/components/ui/chip";
+import { coverageBand, Meter, ProgressBar } from "@/components/ui/meter";
 import { Skeleton } from "@/components/ui/stat";
-import {
-  clearAllData,
-  useProfile,
-  useSavedMatch,
-  useSavedRoadmap,
-} from "@/lib/app-state";
+import { clearAllData, useProfile, useSavedMatch, useSavedRoadmap } from "@/lib/app-state";
 import { cn } from "@/lib/cn";
-import { API_URL } from "@/lib/config";
+import { countDone, countTopics, useRoadmapProgress, weekProgress } from "@/lib/progress";
 import { useRoadmapJob } from "@/lib/roadmap-job";
 import { useSystemStatus } from "@/lib/system-status";
-
-type StepStatus = "done" | "running" | "todo";
+import type { SavedRoadmap } from "@/lib/types";
 
 export function Dashboard() {
   const { value: profile, ready } = useProfile();
   const { value: match } = useSavedMatch();
   const { value: roadmap } = useSavedRoadmap();
   const job = useRoadmapJob();
+  const system = useSystemStatus();
 
   const skillCount = profile?.skills.length ?? 0;
-  const roadmapRunning = job.status === "running";
+  const running = job.status === "running";
+  const started = skillCount > 0 || match || roadmap;
 
   const next = !skillCount
-    ? { href: "/resume-analyzer", label: "Analyze your resume" }
+    ? { href: "/resume-analyzer", label: "Analyze your resume", hint: "Takes a few seconds" }
     : !match
-      ? { href: "/job-matcher", label: "Match a job description" }
+      ? { href: "/job-matcher", label: "Match a job description", hint: "Instant" }
       : !roadmap
-        ? { href: "/skill-gap-analysis", label: "Build your learning roadmap" }
-        : { href: "/skill-gap-analysis", label: "Open your roadmap" };
+        ? { href: "/skill-gap-analysis", label: "Build your roadmap", hint: "Quick or AI-enhanced" }
+        : { href: "/skill-gap-analysis", label: "Continue your roadmap", hint: "Pick up where you left off" };
 
   function resetAll() {
-    if (window.confirm("Clear your saved skills, job description and results from this browser?")) {
+    if (window.confirm("Clear your saved skills, job description, results and progress from this browser?")) {
       clearAllData();
     }
   }
 
   return (
-    <div className="space-y-10">
-      <section className="grid items-start gap-6 lg:grid-cols-[minmax(0,1.5fr)_minmax(0,1fr)]">
-        <div className="pt-2">
-          <p className="mb-4 inline-flex items-center gap-2 rounded-full border border-brand/25 bg-brand/10 px-3 py-1 text-xs font-medium text-violet-200">
+    <div className="space-y-12">
+      <section className="relative">
+        <div className="pointer-events-none absolute -inset-x-8 -top-10 h-64 [background:var(--glow)]" aria-hidden />
+        <div className="relative max-w-2xl">
+          <p className="mb-4 inline-flex items-center gap-2 rounded-full bg-brand-tint px-3 py-1 text-xs font-medium text-brand-ink">
             <Sparkles className="size-3.5" aria-hidden />
-            Career intelligence for AI Engineers
+            Career intelligence for aspiring AI Engineers
           </p>
-          <h1 className="text-4xl font-semibold tracking-tight text-ink sm:text-5xl">
-            Plan your path to an <span className="text-brand-soft">AI Engineer</span> role
-          </h1>
-          <p className="mt-4 max-w-xl text-base leading-7 text-ink-muted">
-            Turn your resume into a skill profile, see how it covers a real job description, and get a
-            week-by-week learning plan with projects to build.
-          </p>
-          <div className="mt-7 flex flex-wrap gap-3">
-            {ready ? (
-              <ButtonLink href={next.href} size="lg" icon={<ArrowRight className="size-4" aria-hidden />}>
-                {next.label}
-              </ButtonLink>
+          <h1 className="font-display text-[2.6rem] font-medium leading-[1.05] tracking-[-0.015em] text-ink sm:text-[3.4rem]">
+            {started ? (
+              <>
+                Welcome back. <span className="text-brand-ink">Keep going.</span>
+              </>
             ) : (
-              <Skeleton className="h-12 w-56" />
+              <>
+                Know exactly what to learn <span className="text-brand-ink">next.</span>
+              </>
+            )}
+          </h1>
+          <p className="mt-5 max-w-xl text-base leading-7 text-ink-muted sm:text-[17px]">
+            Turn your resume into a skill profile, see how it covers a real job description, and follow a
+            week-by-week plan with projects worth building.
+          </p>
+          <div className="mt-8 flex flex-wrap items-center gap-4">
+            {ready ? (
+              <>
+                <ButtonLink href={next.href} size="lg" icon={<ArrowRight aria-hidden />}>
+                  {next.label}
+                </ButtonLink>
+                <span className="text-sm text-ink-faint">{next.hint}</span>
+              </>
+            ) : (
+              <Skeleton className="h-12 w-60" />
             )}
           </div>
         </div>
-
-        <SystemCard />
       </section>
 
-      <section aria-labelledby="progress-heading">
-        <h2 id="progress-heading" className="mb-4 text-sm font-semibold uppercase tracking-[0.14em] text-ink-faint">
-          Your progress
-        </h2>
+      <section aria-labelledby="journey-heading">
+        <div className="mb-5 flex items-end justify-between gap-4">
+          <div>
+            <SectionLabel>Your journey</SectionLabel>
+            <h2 id="journey-heading" className="mt-1 font-display text-2xl font-medium text-ink">
+              Three steps to a plan
+            </h2>
+          </div>
+        </div>
         <ol className="grid gap-4 md:grid-cols-3">
-          <StepCard
-            step={1}
+          <JourneyCard
+            index={1}
             icon={FileText}
             title="Resume profile"
-            description="Upload a PDF resume to detect your skills, experience and projects."
+            copy="Upload a PDF to detect your skills, or type them in."
             ready={ready}
-            status={skillCount ? "done" : "todo"}
-            statusText={
+            state={skillCount ? "done" : "todo"}
+            detail={
               skillCount
-                ? `${skillCount} skills${profile?.filename ? ` from ${profile.filename}` : " entered manually"}`
+                ? `${skillCount} skills${profile?.filename ? ` · ${profile.filename}` : ""}`
                 : "Not started"
             }
             href="/resume-analyzer"
-            cta={skillCount ? "Review profile" : "Upload resume"}
+            cta={skillCount ? "Review" : "Start"}
           />
-          <StepCard
-            step={2}
+          <JourneyCard
+            index={2}
             icon={BriefcaseBusiness}
             title="Job match"
-            description="Compare your skills with a job description to see coverage and gaps."
+            copy="See how your skills cover a job description."
             ready={ready}
-            status={match ? "done" : "todo"}
-            statusText={
-              match
-                ? `${match.result.match_score}% coverage · ${match.result.missing_skills.length} potential gaps`
-                : "Not started"
-            }
+            state={match ? "done" : "todo"}
+            detail={match ? `${match.result.match_score}% coverage · ${match.result.missing_count} gaps` : "Not started"}
             href="/job-matcher"
-            cta={match ? "View match" : "Match a job"}
+            cta={match ? "View" : "Start"}
           />
-          <StepCard
-            step={3}
+          <JourneyCard
+            index={3}
             icon={Route}
             title="Learning roadmap"
-            description="Get a prioritized weekly plan, with optional AI explanations and interview prep."
+            copy="A prioritized weekly plan, optionally explained by AI."
             ready={ready}
-            status={roadmapRunning ? "running" : roadmap ? "done" : "todo"}
-            statusText={
-              roadmapRunning
+            state={running ? "running" : roadmap ? "done" : "todo"}
+            detail={
+              running
                 ? job.mode === "ai"
-                  ? "AI analysis in progress…"
+                  ? "AI analysis in progress"
                   : "Building…"
                 : roadmap
                   ? `${roadmap.result.target_weeks}-week ${roadmap.mode === "ai" ? "AI-enhanced" : "quick"} plan`
                   : "Not started"
             }
             href="/skill-gap-analysis"
-            cta={roadmap ? "Open roadmap" : "Build roadmap"}
+            cta={roadmap ? "Open" : "Start"}
           />
         </ol>
       </section>
 
-      {ready && (skillCount > 0 || roadmap) && (
-        <section className="grid gap-6 lg:grid-cols-2">
-          {skillCount > 0 && profile && (
-            <Card
-              title="Your skills"
-              description="Used by every analysis. Edit them from any page."
-              icon={<CircleCheck className="size-4" aria-hidden />}
-            >
-              <ul className="flex flex-wrap gap-2">
-                {profile.skills.slice(0, 18).map((skill) => (
-                  <li key={skill}>
-                    <Chip tone="brand">{skill}</Chip>
-                  </li>
-                ))}
-                {profile.skills.length > 18 && (
-                  <li>
-                    <Chip>+{profile.skills.length - 18} more</Chip>
-                  </li>
-                )}
-              </ul>
-            </Card>
-          )}
+      {ready && started && (
+        <section aria-labelledby="snapshot-heading" className="space-y-5">
+          <div>
+            <SectionLabel>Snapshot</SectionLabel>
+            <h2 id="snapshot-heading" className="mt-1 font-display text-2xl font-medium text-ink">
+              Where you stand
+            </h2>
+          </div>
 
-          {roadmap ? (
-            <Card
-              title="Up next in your roadmap"
-              description={roadmap.result.weekly_roadmap[0]?.title ?? "Week 1"}
-              icon={<Route className="size-4" aria-hidden />}
-              actions={
-                <ButtonLink href="/skill-gap-analysis" variant="secondary" size="sm">
-                  Full plan
-                </ButtonLink>
-              }
-            >
-              <p className="mb-3 text-xs font-medium uppercase tracking-wider text-ink-faint">Top priorities</p>
-              <ChipList
-                items={roadmap.result.prioritized_gaps.slice(0, 6)}
-                tone="warning"
-                numbered
-                empty="No gaps detected for this job."
-              />
-              {roadmap.result.weekly_roadmap[0]?.deliverable && (
-                <p className="mt-4 text-sm leading-6 text-ink-muted">
-                  <span className="text-ink">Week 1 deliverable:</span>{" "}
-                  {roadmap.result.weekly_roadmap[0].deliverable}
-                </p>
-              )}
-            </Card>
-          ) : match ? (
-            <Card
-              title="Gaps from your last job match"
-              description={`${match.result.match_score}% of the detected job skills are covered.`}
-              icon={<BriefcaseBusiness className="size-4" aria-hidden />}
-              actions={
-                <ButtonLink href="/skill-gap-analysis" size="sm">
-                  Build roadmap
-                </ButtonLink>
-              }
-            >
-              <ChipList items={match.result.missing_skills} tone="warning" empty="No gaps detected." />
-            </Card>
-          ) : null}
+          <div className="grid gap-4 lg:grid-cols-2">
+            {match ? (
+              <Card
+                title="Job coverage"
+                description={`${match.result.matched_count} of ${match.result.total_required} skills the job mentions`}
+                actions={
+                  <Link href="/job-matcher" className="text-xs font-semibold text-brand-ink hover:underline">
+                    Details
+                  </Link>
+                }
+              >
+                <div className="flex items-end gap-4">
+                  <p className="font-sans text-5xl font-semibold leading-none tracking-[-0.03em] text-ink">
+                    {match.result.match_score}%
+                  </p>
+                  <p className="mb-1 flex items-center gap-1.5 text-sm text-ink-muted">
+                    {coverageBand(match.result.match_score).icon}
+                    {coverageBand(match.result.match_score).label}
+                  </p>
+                </div>
+                <Meter
+                  className="mt-4"
+                  value={match.result.match_score}
+                  label="Job skill coverage"
+                  band={coverageBand(match.result.match_score)}
+                />
+                {match.result.missing_skills.length > 0 && (
+                  <div className="mt-5">
+                    <SectionLabel className="mb-2">Potential gaps</SectionLabel>
+                    <ChipList items={match.result.missing_skills.slice(0, 8)} tone="warning" size="sm" />
+                  </div>
+                )}
+              </Card>
+            ) : (
+              <Card
+                title="Your skills"
+                description="Shared across every analysis. Edit them on any page."
+                actions={
+                  <Link href="/job-matcher" className="text-xs font-semibold text-brand-ink hover:underline">
+                    Match a job
+                  </Link>
+                }
+              >
+                <ChipList items={(profile?.skills ?? []).slice(0, 16)} tone="brand" size="sm" />
+              </Card>
+            )}
+
+            {roadmap ? <RoadmapSnapshot roadmap={roadmap} /> : <ProfileCard skills={profile?.skills ?? []} />}
+          </div>
         </section>
       )}
 
-      {ready && (profile || match || roadmap) && (
-        <section className="flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-line px-5 py-4">
-          <p className="text-sm text-ink-muted">
-            Your data stays in this browser. Nothing is uploaded except to your local backend.
-          </p>
-          <Button variant="ghost" size="sm" onClick={resetAll} icon={<Trash2 className="size-3.5" aria-hidden />}>
+      <section className="flex flex-wrap items-center justify-between gap-4 border-t border-line pt-6 text-sm text-ink-faint">
+        <p>
+          {system.backend === "online"
+            ? system.ai?.available
+              ? `Backend online · AI ready with ${system.ai.model}`
+              : "Backend online · AI-enhanced roadmaps need Ollama"
+            : system.backend === "offline"
+              ? "Backend offline"
+              : "Connecting to backend…"}
+          <span className="hidden sm:inline"> · Your data stays in this browser.</span>
+        </p>
+        {ready && started && (
+          <Button variant="ghost" size="sm" onClick={resetAll} icon={<Trash2 aria-hidden />}>
             Clear saved data
           </Button>
-        </section>
-      )}
+        )}
+      </section>
     </div>
   );
 }
 
-function StepCard({
-  step,
-  icon: Icon,
-  title,
-  description,
-  ready,
-  status,
-  statusText,
-  href,
-  cta,
-}: {
-  step: number;
-  icon: LucideIcon;
-  title: string;
-  description: string;
-  ready: boolean;
-  status: StepStatus;
-  statusText: string;
-  href: string;
-  cta: string;
-}) {
+function ProfileCard({ skills }: { skills: string[] }) {
+  if (skills.length === 0) return null;
   return (
-    <li className="flex flex-col rounded-2xl border border-line bg-surface p-5">
-      <div className="flex items-center justify-between">
-        <span className="flex size-10 items-center justify-center rounded-xl bg-brand/10 text-brand-soft">
-          <Icon className="size-5" aria-hidden />
-        </span>
-        <span className="text-xs font-medium tabular-nums text-ink-faint">Step {step}</span>
-      </div>
-      <h3 className="mt-4 font-semibold text-ink">{title}</h3>
-      <p className="mt-1.5 flex-1 text-sm leading-6 text-ink-muted">{description}</p>
-
-      <div className="mt-4 flex items-center gap-2 text-xs">
-        {!ready ? (
-          <Skeleton className="h-4 w-40" />
-        ) : (
-          <>
-            {status === "done" && <CircleCheck className="size-4 shrink-0 text-success" aria-hidden />}
-            {status === "running" && <LoaderCircle className="size-4 shrink-0 animate-spin text-brand-soft" aria-hidden />}
-            {status === "todo" && <span className="size-2 shrink-0 rounded-full bg-ink-faint" aria-hidden />}
-            <span className={cn("truncate", status === "todo" ? "text-ink-faint" : "text-ink")}>{statusText}</span>
-          </>
-        )}
-      </div>
-
-      <ButtonLink href={href} variant="secondary" className="mt-4 w-full">
-        {cta}
-      </ButtonLink>
-    </li>
-  );
-}
-
-function SystemCard() {
-  const status = useSystemStatus();
-
-  const backend =
-    status.backend === "checking"
-      ? { tone: "bg-ink-faint", text: "Checking…" }
-      : status.backend === "online"
-        ? { tone: "bg-success", text: "Online" }
-        : { tone: "bg-danger", text: "Offline" };
-
-  const ai =
-    status.backend !== "online"
-      ? { tone: "bg-ink-faint", text: status.backend === "checking" ? "Checking…" : "Unavailable", detail: "Needs the backend." }
-      : status.ai === null
-        ? { tone: "bg-ink-faint", text: "Unknown", detail: "Restart the backend to enable status checks." }
-        : status.ai.available
-          ? { tone: "bg-success", text: "Ready", detail: `${status.ai.model} running locally with Ollama.` }
-          : { tone: "bg-warning", text: "Not ready", detail: status.ai.message };
-
-  return (
-    <Card title="System status" icon={<Cpu className="size-4" aria-hidden />}>
-      <div className="space-y-4 text-sm">
-        <div className="flex items-start gap-3">
-          <Server className="mt-0.5 size-4 shrink-0 text-ink-faint" aria-hidden />
-          <div className="min-w-0 flex-1">
-            <p className="text-ink">Backend API</p>
-            <p className="truncate font-mono text-xs text-ink-faint">{API_URL}</p>
-          </div>
-          <StatusBadge tone={backend.tone} text={backend.text} />
-        </div>
-        <div className="flex items-start gap-3">
-          <Sparkles className="mt-0.5 size-4 shrink-0 text-ink-faint" aria-hidden />
-          <div className="min-w-0 flex-1">
-            <p className="text-ink">AI engine</p>
-            <p className="text-xs leading-5 text-ink-faint">{ai.detail}</p>
-          </div>
-          <StatusBadge tone={ai.tone} text={ai.text} />
-        </div>
-      </div>
-      <p className="mt-5 border-t border-line pt-4 text-xs leading-5 text-ink-faint">
-        Resume parsing, job matching and quick roadmaps work without AI. AI-enhanced roadmaps need Ollama.
-      </p>
+    <Card
+      title="Your skills"
+      description="Shared across every analysis. Edit them on any page."
+      actions={
+        <Link href="/resume-analyzer" className="text-xs font-semibold text-brand-ink hover:underline">
+          Edit
+        </Link>
+      }
+    >
+      <ChipList items={skills.slice(0, 16)} tone="brand" size="sm" />
     </Card>
   );
 }
 
-function StatusBadge({ tone, text }: { tone: string; text: string }) {
+function RoadmapSnapshot({ roadmap }: { roadmap: SavedRoadmap }) {
+  const done = useRoadmapProgress(roadmap.generatedAt);
+  const weeks = roadmap.result.weekly_roadmap;
+  const total = countTopics(weeks);
+  const completed = countDone(weeks, done);
+  const current = weeks.find((week) => !weekProgress(week, done).complete) ?? weeks[weeks.length - 1];
+  const currentProgress = current ? weekProgress(current, done) : null;
+
   return (
-    <span className="inline-flex shrink-0 items-center gap-1.5 rounded-full border border-line px-2.5 py-1 text-xs text-ink-muted">
-      <span className={cn("size-1.5 rounded-full", tone)} aria-hidden />
-      {text}
-    </span>
+    <Card
+      title="Your roadmap"
+      description={`${roadmap.result.target_weeks}-week ${roadmap.mode === "ai" ? "AI-enhanced" : "quick"} plan`}
+      actions={
+        <Link href="/skill-gap-analysis" className="text-xs font-semibold text-brand-ink hover:underline">
+          Open
+        </Link>
+      }
+    >
+      <div className="flex items-baseline justify-between gap-3 text-sm">
+        <span className="text-ink">
+          {completed} of {total} topics done
+        </span>
+        <span className="text-ink-faint">{total > 0 ? Math.round((completed / total) * 100) : 0}%</span>
+      </div>
+      <ProgressBar className="mt-2" value={completed} max={total} label="Roadmap progress" />
+
+      {current && (
+        <div className="mt-5 rounded-xl bg-surface-2/70 p-4">
+          <SectionLabel>{currentProgress?.complete ? "All weeks complete" : "Up next"}</SectionLabel>
+          <p className="mt-1 font-medium text-ink">
+            Week {current.week}: {current.title.replace(/^Week \d+:\s*/, "")}
+          </p>
+          {currentProgress && currentProgress.total > 0 && (
+            <p className="mt-1 text-xs text-ink-faint">
+              {currentProgress.completed} of {currentProgress.total} topics done this week
+            </p>
+          )}
+        </div>
+      )}
+    </Card>
+  );
+}
+
+function JourneyCard({
+  index,
+  icon: Icon,
+  title,
+  copy,
+  ready,
+  state,
+  detail,
+  href,
+  cta,
+}: {
+  index: number;
+  icon: LucideIcon;
+  title: string;
+  copy: string;
+  ready: boolean;
+  state: "todo" | "done" | "running";
+  detail: string;
+  href: string;
+  cta: string;
+}) {
+  return (
+    <li>
+      <Link
+        href={href}
+        className="group flex h-full flex-col rounded-2xl bg-surface p-5 shadow-card transition-[transform,box-shadow] hover:-translate-y-0.5 hover:shadow-pop"
+      >
+        <div className="flex items-center justify-between">
+          <span className="flex size-10 items-center justify-center rounded-xl bg-brand-tint text-brand-ink">
+            <Icon className="size-5" aria-hidden />
+          </span>
+          <span
+            className={cn(
+              "flex size-7 items-center justify-center rounded-full text-xs font-semibold",
+              state === "done" && "bg-good text-white",
+              state === "running" && "bg-brand-tint text-brand-ink",
+              state === "todo" && "bg-surface-2 text-ink-muted",
+            )}
+            aria-hidden
+          >
+            {state === "done" ? (
+              <Check className="size-4" strokeWidth={3} />
+            ) : state === "running" ? (
+              <LoaderCircle className="size-4 animate-spin" />
+            ) : (
+              index
+            )}
+          </span>
+        </div>
+        <h3 className="mt-5 text-base font-semibold text-ink">{title}</h3>
+        <p className="mt-1 flex-1 text-sm leading-6 text-ink-muted">{copy}</p>
+        <div className="mt-5 flex items-center justify-between gap-3 border-t border-line pt-4 text-sm">
+          {ready ? (
+            <span className={cn("truncate", state === "todo" ? "text-ink-faint" : "text-ink")}>{detail}</span>
+          ) : (
+            <Skeleton className="h-4 w-28" />
+          )}
+          <span className="inline-flex shrink-0 items-center gap-1 font-medium text-brand-ink">
+            {cta}
+            <ArrowRight className="size-4 transition-transform group-hover:translate-x-0.5" aria-hidden />
+          </span>
+        </div>
+      </Link>
+    </li>
   );
 }

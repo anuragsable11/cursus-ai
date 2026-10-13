@@ -2,7 +2,14 @@ import { useSyncExternalStore } from "react";
 
 import { api, errorMessage, isAbort } from "./api";
 import { roadmapStore } from "./app-state";
+import { pushToast } from "./toasts";
 import type { RoadmapMode } from "./types";
+
+const ROADMAP_PATH = "/skill-gap-analysis";
+
+function onRoadmapPage() {
+  return typeof window !== "undefined" && window.location.pathname.startsWith(ROADMAP_PATH);
+}
 
 export type RoadmapRequest = {
   skills: string[];
@@ -64,8 +71,31 @@ export async function startRoadmap(mode: RoadmapMode, request: RoadmapRequest) {
       generatedAt: new Date().toISOString(),
     });
     setState(IDLE);
+    if (mode === "ai" && !onRoadmapPage()) {
+      pushToast({
+        tone: "success",
+        title: "Your AI roadmap is ready",
+        description: `${result.target_weeks}-week plan with ${result.prioritized_gaps.length} prioritized skills.`,
+        href: ROADMAP_PATH,
+        actionLabel: "Open roadmap",
+      });
+    }
   } catch (error) {
-    setState(isAbort(error) ? IDLE : { status: "error", mode, message: errorMessage(error) });
+    if (isAbort(error)) {
+      setState(IDLE);
+    } else {
+      const message = errorMessage(error);
+      setState({ status: "error", mode, message });
+      if (mode === "ai" && !onRoadmapPage()) {
+        pushToast({
+          tone: "error",
+          title: "The AI roadmap could not be generated",
+          description: message,
+          href: ROADMAP_PATH,
+          actionLabel: "View details",
+        }, 15000);
+      }
+    }
   } finally {
     if (controller === ownController) controller = null;
   }

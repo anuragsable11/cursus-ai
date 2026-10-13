@@ -1,8 +1,9 @@
-import type { Metadata } from "next";
-import { Geist, Geist_Mono } from "next/font/google";
+import type { Metadata, Viewport } from "next";
+import { Fraunces, Geist, Geist_Mono } from "next/font/google";
 
-import { BackendBanner } from "@/components/backend-banner";
-import { SiteHeader } from "@/components/site-header";
+import { AppShell } from "@/components/app-shell";
+import { ToastHost } from "@/components/toast-host";
+import { THEME_INIT_SCRIPT } from "@/lib/theme-script";
 import "./globals.css";
 
 const geistSans = Geist({
@@ -15,33 +16,41 @@ const geistMono = Geist_Mono({
   subsets: ["latin"],
 });
 
+const fraunces = Fraunces({
+  variable: "--font-fraunces",
+  subsets: ["latin"],
+  axes: ["opsz", "SOFT"],
+});
+
 export const metadata: Metadata = {
   title: {
-    default: "CURSUS AI",
-    template: "%s · CURSUS AI",
+    default: "Cursus AI",
+    template: "%s · Cursus AI",
   },
   description:
     "Analyze your resume, match it against job descriptions and build a learning roadmap toward an AI Engineer role.",
+};
+
+export const viewport: Viewport = {
+  themeColor: [
+    { media: "(prefers-color-scheme: light)", color: "#f6f6f4" },
+    { media: "(prefers-color-scheme: dark)", color: "#0c0d11" },
+  ],
 };
 
 export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
     <html
       lang="en"
-      className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
+      suppressHydrationWarning
+      className={`${geistSans.variable} ${geistMono.variable} ${fraunces.variable} h-full antialiased`}
     >
-      <body className="flex min-h-full flex-col font-sans">
-        <SiteHeader />
-        <BackendBanner />
-        <main className="mx-auto w-full max-w-6xl flex-1 px-4 py-8 sm:px-6 lg:py-12">
-          {children}
-        </main>
-        <footer className="border-t border-line print:hidden">
-          <div className="mx-auto flex w-full max-w-6xl flex-wrap justify-between gap-2 px-4 py-6 text-xs text-ink-faint sm:px-6">
-            <p>CURSUS AI · Career intelligence for aspiring AI Engineers</p>
-            <p>Your profile is stored in this browser and analyzed by your local backend.</p>
-          </div>
-        </footer>
+      <head>
+        <script dangerouslySetInnerHTML={{ __html: THEME_INIT_SCRIPT }} />
+      </head>
+      <body className="min-h-full font-sans">
+        <AppShell>{children}</AppShell>
+        <ToastHost />
       </body>
     </html>
   );

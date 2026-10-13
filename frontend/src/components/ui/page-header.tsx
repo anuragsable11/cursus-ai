@@ -2,24 +2,22 @@ import type { ReactNode } from "react";
 
 type PageHeaderProps = {
   eyebrow: string;
-  icon: ReactNode;
   title: string;
   description: ReactNode;
   actions?: ReactNode;
 };
 
-export function PageHeader({ eyebrow, icon, title, description, actions }: PageHeaderProps) {
+export function PageHeader({ eyebrow, title, description, actions }: PageHeaderProps) {
   return (
-    <header className="mb-8 flex flex-wrap items-end justify-between gap-4">
+    <header className="mb-8 flex flex-wrap items-end justify-between gap-x-8 gap-y-4 sm:mb-10">
       <div className="max-w-2xl">
-        <p className="mb-3 inline-flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.16em] text-brand-soft">
-          {icon}
-          {eyebrow}
-        </p>
-        <h1 className="text-3xl font-semibold tracking-tight text-ink sm:text-4xl">{title}</h1>
-        <p className="mt-3 text-sm leading-6 text-ink-muted sm:text-base sm:leading-7">{description}</p>
+        <p className="mb-2 text-xs font-semibold uppercase tracking-[0.14em] text-brand-ink">{eyebrow}</p>
+        <h1 className="font-display text-[2rem] font-medium leading-[1.1] tracking-[-0.01em] text-ink sm:text-[2.5rem]">
+          {title}
+        </h1>
+        <p className="mt-3 max-w-xl text-[15px] leading-7 text-ink-muted">{description}</p>
       </div>
-      {actions && <div className="flex flex-wrap gap-2 print:hidden">{actions}</div>}
+      {actions && <div className="print-hidden flex flex-wrap gap-2">{actions}</div>}
     </header>
   );
 }

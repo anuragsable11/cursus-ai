@@ -1,31 +1,20 @@
 "use client";
 
-import {
-  ArrowRight,
-  BriefcaseBusiness,
-  CircleCheck,
-  SearchCheck,
-  TriangleAlert,
-} from "lucide-react";
+import { ArrowRight, BriefcaseBusiness, CircleCheck, SearchCheck, TriangleAlert } from "lucide-react";
 import { useState } from "react";
 
+import { InputsSummary } from "@/components/inputs-summary";
 import { JobDescriptionField } from "@/components/job-description-field";
 import { SkillsPanel } from "@/components/skills-panel";
 import { Alert } from "@/components/ui/alert";
 import { Button, ButtonLink } from "@/components/ui/button";
-import { Card } from "@/components/ui/card";
+import { Card, SectionLabel } from "@/components/ui/card";
 import { ChipList } from "@/components/ui/chip";
+import { coverageBand, Meter } from "@/components/ui/meter";
 import { PageHeader } from "@/components/ui/page-header";
-import { ScoreRing, scoreTone } from "@/components/ui/score-ring";
-import { EmptyState, Skeleton, Stat } from "@/components/ui/stat";
+import { EmptyState, HeroFigure, Skeleton } from "@/components/ui/stat";
 import { api, errorMessage } from "@/lib/api";
-import {
-  inputsChanged,
-  matchStore,
-  useJobDescription,
-  useProfile,
-  useSavedMatch,
-} from "@/lib/app-state";
+import { inputsChanged, matchStore, useJobDescription, useProfile, useSavedMatch } from "@/lib/app-state";
 import { LIMITS } from "@/lib/config";
 import type { SavedMatch } from "@/lib/types";
 import { formatDateTime } from "@/lib/use-now";
@@ -36,9 +25,12 @@ export function JobMatcher() {
   const { value: saved } = useSavedMatch();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+  const [editing, setEditing] = useState(false);
 
   const skills = profile?.skills ?? [];
   const jobText = jobDescription ?? "";
+  const stale = saved ? inputsChanged(saved.request, skills, jobText) : false;
+  const showForm = !saved || editing;
 
   const problem =
     skills.length === 0
@@ -53,11 +45,8 @@ export function JobMatcher() {
     setError("");
     try {
       const result = await api.matchJob({ resume_skills: skills, job_description: jobText });
-      matchStore.set({
-        request: { skills, jobDescription: jobText },
-        result,
-        generatedAt: new Date().toISOString(),
-      });
+      matchStore.set({ request: { skills, jobDescription: jobText }, result, generatedAt: new Date().toISOString() });
+      setEditing(false);
     } catch (err) {
       setError(errorMessage(err));
     } finally {
@@ -68,143 +57,152 @@ export function JobMatcher() {
   return (
     <>
       <PageHeader
-        eyebrow="Step 2 · Job match"
-        icon={<BriefcaseBusiness className="size-3.5" aria-hidden />}
+        eyebrow="Step 2 of 3"
         title="Job Matcher"
-        description="See how your skills cover the skills a job description asks for, and which ones are potential gaps worth closing."
+        description="See how your skills cover what a job description asks for, and which skills are worth closing the gap on."
       />
 
-      <div className="grid items-start gap-6 lg:grid-cols-2">
-        <Card title="Compare" icon={<SearchCheck className="size-4" aria-hidden />}>
-          <div className="space-y-6">
-            <SkillsPanel />
-            <JobDescriptionField />
+      {!ready ? (
+        <Skeleton className="h-80" />
+      ) : showForm ? (
+        <div className="grid items-start gap-6 lg:grid-cols-[minmax(0,7fr)_minmax(0,5fr)]">
+          <Card title="Compare" description="Your skills against a job description." icon={<SearchCheck aria-hidden />}>
+            <div className="space-y-6">
+              <SkillsPanel />
+              <JobDescriptionField />
 
-            {error && (
-              <Alert tone="error" onDismiss={() => setError("")}>
-                {error}
-              </Alert>
-            )}
+              {error && (
+                <Alert tone="error" onDismiss={() => setError("")}>
+                  {error}
+                </Alert>
+              )}
 
-            <div>
-              <Button
-                onClick={analyze}
-                disabled={!ready || problem !== null}
-                loading={loading}
-                size="lg"
-                className="w-full"
-                icon={<SearchCheck className="size-4" aria-hidden />}
-              >
-                {loading ? "Comparing…" : saved ? "Compare again" : "Compare skills"}
-              </Button>
-              {ready && problem && <p className="mt-2 text-center text-xs text-ink-faint">{problem}</p>}
+              <div className="flex flex-wrap items-center gap-3">
+                <Button onClick={analyze} disabled={problem !== null} loading={loading} size="lg" icon={<SearchCheck aria-hidden />}>
+                  {loading ? "Comparing…" : saved ? "Compare again" : "Compare skills"}
+                </Button>
+                {saved && (
+                  <Button variant="ghost" size="lg" onClick={() => setEditing(false)}>
+                    Cancel
+                  </Button>
+                )}
+                {problem && <span className="text-xs text-ink-faint">{problem}</span>}
+              </div>
             </div>
-          </div>
-        </Card>
+          </Card>
 
-        <div className="lg:sticky lg:top-24">
-          {!ready ? (
-            <Skeleton className="h-96" />
-          ) : saved ? (
-            <MatchResults
-              saved={saved}
-              stale={inputsChanged(saved.request, skills, jobText)}
-            />
-          ) : (
-            <Card>
-              <EmptyState
-                icon={<BriefcaseBusiness className="size-6" aria-hidden />}
-                title="Your match will appear here"
-                description="Add your skills and paste a job description. No job in mind? Use the sample job to try it out."
-              />
-            </Card>
-          )}
+          <aside className="space-y-4 lg:sticky lg:top-10">
+            {saved ? (
+              <Card tone="flat" title="Last comparison" description={formatDateTime(saved.generatedAt)}>
+                <MiniResult saved={saved} />
+              </Card>
+            ) : (
+              <Card tone="flat">
+                <EmptyState
+                  icon={<BriefcaseBusiness aria-hidden />}
+                  title="How coverage works"
+                  description="We look for a fixed vocabulary of technical skills in both your list and the job description. Coverage is the share of the job's skills you already have."
+                />
+              </Card>
+            )}
+          </aside>
         </div>
-      </div>
+      ) : (
+        <div className="space-y-5">
+          <InputsSummary skills={skills} jobDescription={jobText} stale={stale} onEdit={() => setEditing(true)} />
+          <MatchResults saved={saved} stale={stale} />
+        </div>
+      )}
     </>
+  );
+}
+
+function MiniResult({ saved }: { saved: SavedMatch }) {
+  const band = coverageBand(saved.result.match_score);
+  return (
+    <div>
+      <div className="flex items-end justify-between gap-3">
+        <p className="font-sans text-4xl font-semibold leading-none tracking-[-0.03em] text-ink">
+          {saved.result.match_score}%
+        </p>
+        <p className="flex items-center gap-1.5 text-sm text-ink-muted">
+          {band.icon}
+          {band.label}
+        </p>
+      </div>
+      <Meter className="mt-3" value={saved.result.match_score} label="Job skill coverage" band={band} size="sm" />
+      <p className="mt-3 text-xs text-ink-faint">
+        Compare again after editing to refresh this result.
+      </p>
+    </div>
   );
 }
 
 function MatchResults({ saved, stale }: { saved: SavedMatch; stale: boolean }) {
   const { result } = saved;
-  const tone = scoreTone(result.match_score);
+  const band = coverageBand(result.match_score);
   const noSkillsFound = result.total_required === 0;
 
   return (
-    <Card
-      title="Match results"
-      description={`Compared ${formatDateTime(saved.generatedAt)}`}
-      icon={<CircleCheck className="size-4" aria-hidden />}
-    >
+    <div className="space-y-5 animate-rise">
       {stale && (
-        <Alert tone="warning" className="mb-5">
-          Your skills or the job description changed since this comparison. Compare again to update it.
+        <Alert tone="warning">
+          Your skills or the job description changed since this comparison. Edit inputs and compare again to refresh it.
         </Alert>
       )}
 
       {noSkillsFound ? (
-        <Alert tone="info" title="No recognized skills in this job description">
-          The detector looks for common technical skills such as Python, SQL, Docker, PyTorch, LLM and RAG. Try a
-          more detailed job description that lists the required tools and technologies.
-        </Alert>
+        <Card>
+          <Alert tone="info" title="No recognized skills in this job description">
+            The detector looks for common technical skills such as Python, SQL, Docker, PyTorch, LLM and RAG. Try a
+            more detailed job description that lists the required tools and technologies.
+          </Alert>
+        </Card>
       ) : (
-        <>
-          <div className="flex flex-col items-center gap-5 sm:flex-row sm:items-center">
-            <ScoreRing score={result.match_score} />
-            <div className="text-center sm:text-left">
-              <p className={`text-lg font-semibold ${tone.text}`}>{tone.label}</p>
-              <p className="mt-1 text-sm leading-6 text-ink-muted">
-                You have {result.matched_count} of the {result.total_required} skills this job mentions.
-              </p>
-            </div>
-          </div>
-
-          <div className="mt-6 grid grid-cols-3 gap-3">
-            <Stat label="Job skills" value={result.total_required} />
-            <Stat label="You have" value={result.matched_count} />
-            <Stat label="Potential gaps" value={result.missing_count} />
-          </div>
-
-          <div className="mt-6 space-y-5">
+        <Card padding="lg">
+          <div className="grid gap-8 lg:grid-cols-[minmax(0,5fr)_minmax(0,7fr)]">
             <div>
-              <h3 className="mb-2.5 flex items-center gap-2 text-sm font-medium text-ink">
-                <CircleCheck className="size-4 text-success" aria-hidden />
-                Skills you have
-              </h3>
-              <ChipList items={result.matched_skills} tone="success" empty="None of the job's skills are in your list yet." />
+              <SectionLabel>Skill coverage</SectionLabel>
+              <HeroFigure className="mt-3" value={`${result.match_score}%`} label={`${result.matched_count} of ${result.total_required} skills this job mentions`} />
+              <Meter className="mt-5" value={result.match_score} label="Job skill coverage" band={band} />
+              <p className="mt-3 flex items-center gap-1.5 text-sm font-medium text-ink">
+                {band.icon}
+                {band.label}
+              </p>
+              <p className="mt-1 text-xs leading-5 text-ink-faint">Compared {formatDateTime(saved.generatedAt)}</p>
             </div>
-            <div>
-              <h3 className="mb-2.5 flex items-center gap-2 text-sm font-medium text-ink">
-                <TriangleAlert className="size-4 text-warning" aria-hidden />
-                Potential gaps
-              </h3>
-              <ChipList items={result.missing_skills} tone="warning" empty="No gaps. You cover every skill this job mentions." />
+
+            <div className="space-y-6">
+              <div>
+                <h3 className="mb-2.5 flex items-center gap-2 text-sm font-medium text-ink">
+                  <CircleCheck className="size-4 text-good" aria-hidden />
+                  Skills you have
+                  <span className="text-ink-faint">· {result.matched_skills.length}</span>
+                </h3>
+                <ChipList items={result.matched_skills} tone="good" empty="None of the job's skills are in your list yet." />
+              </div>
+              <div>
+                <h3 className="mb-2.5 flex items-center gap-2 text-sm font-medium text-ink">
+                  <TriangleAlert className="size-4 text-warning" aria-hidden />
+                  Potential gaps
+                  <span className="text-ink-faint">· {result.missing_skills.length}</span>
+                </h3>
+                <ChipList items={result.missing_skills} tone="warning" empty="No gaps. You cover every skill this job mentions." />
+              </div>
             </div>
           </div>
 
-          {result.missing_skills.length > 0 && (
-            <div className="mt-6 rounded-xl border border-brand/20 bg-brand/[0.06] p-4">
-              <p className="text-sm font-medium text-ink">Turn these gaps into a plan</p>
-              <p className="mt-1 text-sm leading-6 text-ink-muted">
-                Build a week-by-week roadmap for this job description.
-              </p>
-              <ButtonLink
-                href="/skill-gap-analysis"
-                size="sm"
-                className="mt-3"
-                icon={<ArrowRight className="size-3.5" aria-hidden />}
-              >
-                Build my roadmap
-              </ButtonLink>
-            </div>
-          )}
-        </>
+          <div className="mt-8 flex flex-wrap items-center justify-between gap-4 border-t border-line pt-6">
+            <p className="max-w-xl text-xs leading-5 text-ink-faint">
+              Coverage counts skills from a fixed vocabulary found in both inputs. It isn&apos;t a hiring probability,
+              and a missing skill only means it isn&apos;t in your list.
+            </p>
+            <ButtonLink href="/skill-gap-analysis" icon={<ArrowRight aria-hidden />}>
+              {result.missing_skills.length > 0 ? "Turn gaps into a roadmap" : "Build a roadmap"}
+            </ButtonLink>
+          </div>
+        </Card>
       )}
-
-      <p className="mt-6 text-xs leading-5 text-ink-faint">
-        Coverage counts skills from a fixed vocabulary that appear in both inputs. It is not a hiring probability, and
-        a missing skill only means it is not in your list.
-      </p>
-    </Card>
+    </div>
   );
 }

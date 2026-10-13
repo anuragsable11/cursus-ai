@@ -29,6 +29,8 @@ export function SkillsEditor({ id, skills, onChange, describedBy }: SkillsEditor
     if (event.key === "Enter" || event.key === ",") {
       event.preventDefault();
       add(draft);
+    } else if (event.key === "Backspace" && draft === "" && skills.length > 0) {
+      onChange(skills.slice(0, -1));
     }
   }
 
@@ -41,7 +43,7 @@ export function SkillsEditor({ id, skills, onChange, describedBy }: SkillsEditor
   }
 
   return (
-    <div className="rounded-xl border border-line-strong bg-canvas/60 p-2 transition-colors focus-within:border-brand/60">
+    <div className="rounded-xl bg-surface-2/70 p-1.5 transition-shadow focus-within:shadow-[0_0_0_2px_var(--brand)]">
       {skills.length > 0 && (
         <ul className="flex flex-wrap gap-1.5 p-1" aria-label="Your skills">
           {skills.map((skill) => (
@@ -82,7 +84,7 @@ export function SkillsEditor({ id, skills, onChange, describedBy }: SkillsEditor
             type="button"
             onMouseDown={(event) => event.preventDefault()}
             onClick={() => add(draft)}
-            className="inline-flex h-8 items-center gap-1 rounded-lg bg-white/[0.06] px-2.5 text-xs font-medium text-ink hover:bg-white/10"
+            className="mr-1 inline-flex h-7 items-center gap-1 rounded-lg bg-surface px-2.5 text-xs font-medium text-ink shadow-card hover:bg-surface-3"
           >
             <Plus className="size-3.5" aria-hidden />
             Add

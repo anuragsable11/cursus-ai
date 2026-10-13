@@ -3,6 +3,7 @@
 import { ClipboardPaste, Eraser } from "lucide-react";
 import { useId } from "react";
 
+import { TextButton } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/stat";
 import { jobDescriptionStore, useJobDescription } from "@/lib/app-state";
 import { LIMITS } from "@/lib/config";
@@ -18,26 +19,22 @@ export function JobDescriptionField({ rows = 10 }: { rows?: number }) {
 
   return (
     <div>
-      <div className="mb-1.5 flex items-center justify-between gap-3">
+      <div className="mb-2 flex items-baseline justify-between gap-3">
         <label htmlFor={id} className="text-sm font-medium text-ink">
           Target job description
         </label>
         {ready && (
-          <button
-            type="button"
-            onClick={() => jobDescriptionStore.set(text ? null : SAMPLE_JOB_DESCRIPTION)}
-            className="inline-flex items-center gap-1.5 text-xs text-ink-muted hover:text-ink"
-          >
+          <TextButton onClick={() => jobDescriptionStore.set(text ? null : SAMPLE_JOB_DESCRIPTION)}>
             {text ? (
               <>
-                <Eraser className="size-3.5" aria-hidden /> Clear
+                <Eraser aria-hidden /> Clear
               </>
             ) : (
               <>
-                <ClipboardPaste className="size-3.5" aria-hidden /> Use a sample job
+                <ClipboardPaste aria-hidden /> Try a sample job
               </>
             )}
-          </button>
+          </TextButton>
         )}
       </div>
 
@@ -51,14 +48,14 @@ export function JobDescriptionField({ rows = 10 }: { rows?: number }) {
           maxLength={LIMITS.maxJobDescription}
           aria-describedby={`${id}-hint`}
           aria-invalid={tooShort || undefined}
-          className="w-full resize-y rounded-xl border border-line-strong bg-canvas/60 p-3.5 text-sm leading-6 text-ink outline-none transition-colors placeholder:text-ink-faint focus:border-brand/60"
+          className="w-full resize-y rounded-xl bg-surface-2/70 p-3.5 text-sm leading-6 text-ink outline-none transition-shadow placeholder:text-ink-faint focus:shadow-[0_0_0_2px_var(--brand)]"
         />
       ) : (
         <Skeleton className="h-56" />
       )}
 
-      <div id={`${id}-hint`} className="mt-1.5 flex justify-between gap-3 text-xs text-ink-faint">
-        <span className={tooShort ? "text-warning" : undefined}>
+      <div id={`${id}-hint`} className="mt-2 flex justify-between gap-3 text-xs leading-5 text-ink-faint">
+        <span className={tooShort ? "text-ink" : undefined}>
           {tooShort
             ? `Add at least ${LIMITS.minJobDescription - length} more characters.`
             : "Saved in this browser and shared across pages."}
