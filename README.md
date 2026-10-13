@@ -11,7 +11,9 @@ Career intelligence for aspiring AI Engineers. Upload a resume, compare it with 
 | Job Matcher | Measures how many of a job description's skills you already have and lists potential gaps. |
 | Skill Gap Roadmap | Builds a 2 to 12 week plan. **Quick plan** is rule-based and instant. **AI-enhanced** adds a summary, gap explanations, projects and interview topics from a local Ollama model and takes about two minutes on a CPU-only machine. |
 
-Your profile, job description and results are stored in the browser's localStorage. Nothing leaves your machine except calls to your own backend and Ollama.
+Roadmap topics can be ticked off as you learn them, and the dashboard shows what is up next. The interface follows your system's light or dark setting, with a switch in the sidebar to override it. Roadmaps print cleanly, with every week expanded.
+
+Your profile, job description, results and progress are stored in the browser's localStorage. Nothing leaves your machine except calls to your own backend and Ollama.
 
 ## Running locally
 
