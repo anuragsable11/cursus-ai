@@ -24,3 +24,9 @@ build/
 # Editors
 .vscode/
 .idea/
+
+# Local database
+backend/data/
+*.db
+*.db-wal
+*.db-shm

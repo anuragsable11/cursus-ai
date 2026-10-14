@@ -23,6 +23,12 @@ CONTEXT_TOKENS = 8192
 # past the request timeout.
 DEFAULT_MAX_TOKENS = 800
 
+# Leave one CPU core free so the browser and dev server stay responsive
+# while the model runs. On a 4-core machine this costs ~10% generation time.
+NUM_THREADS = int(
+    os.getenv("OLLAMA_NUM_THREAD", str(max(1, (os.cpu_count() or 2) - 1)))
+)
+
 
 async def generate_ai_response(
     system_prompt: str,
@@ -55,6 +61,7 @@ async def generate_ai_response(
             "temperature": 0.2,
             "num_ctx": CONTEXT_TOKENS,
             "num_predict": max_tokens,
+            "num_thread": NUM_THREADS,
         },
     }
 
