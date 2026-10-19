@@ -1,0 +1,73 @@
+import { BadgeCheck, CircleCheck, CircleDashed, CircleHelp, CircleX, TriangleAlert } from "lucide-react";
+
+import { SectionLabel } from "@/components/ui/card";
+import { CountUp } from "@/components/ui/count-up";
+import { Meter } from "@/components/ui/meter";
+import { cn } from "@/lib/cn";
+import type { MatchLevel, MatchVerdict, VerdictTone } from "@/lib/match-verdict";
+
+const ICONS: Record<MatchLevel, typeof CircleCheck> = {
+  full: BadgeCheck,
+  strong: CircleCheck,
+  partial: CircleDashed,
+  weak: TriangleAlert,
+  none: CircleX,
+  unknown: CircleHelp,
+};
+
+const TONES: Record<VerdictTone, { icon: string; fill: string; track: string }> = {
+  good: { icon: "text-good", fill: "bg-good", track: "bg-good-tint" },
+  warning: { icon: "text-warning", fill: "bg-warning", track: "bg-warning-tint" },
+  serious: { icon: "text-serious", fill: "bg-serious", track: "bg-serious-tint" },
+  critical: { icon: "text-critical", fill: "bg-critical", track: "bg-critical-tint" },
+  neutral: { icon: "text-ink-faint", fill: "bg-ink-faint", track: "bg-surface-3" },
+};
+
+/**
+ * The verdict leads; the percentage only appears when it means something.
+ * Color always sits next to an icon and a written label.
+ */
+export function MatchVerdictBlock({
+  verdict,
+  size = "lg",
+  label = "Match verdict",
+}: {
+  verdict: MatchVerdict;
+  size?: "lg" | "sm";
+  label?: string;
+}) {
+  const Icon = ICONS[verdict.level];
+  const tone = TONES[verdict.tone];
+  const large = size === "lg";
+
+  return (
+    <div>
+      {large && <SectionLabel className="mb-3">{label}</SectionLabel>}
+      <div className="flex items-center gap-2.5">
+        <Icon className={cn("shrink-0", tone.icon, large ? "size-6" : "size-5")} aria-hidden />
+        <h3 className={cn("font-semibold leading-tight tracking-[-0.03em] text-ink", large ? "text-2xl" : "text-lg")}>
+          {verdict.title}
+        </h3>
+      </div>
+      <p className="mt-2 text-pretty text-sm leading-6 text-ink-muted">{verdict.description}</p>
+
+      {verdict.showScore && (
+        <div className={large ? "mt-6" : "mt-4"}>
+          <div className="flex items-baseline gap-2">
+            <span className={cn("font-semibold tracking-[-0.04em] text-ink", large ? "text-5xl" : "text-3xl")}>
+              <CountUp value={verdict.score} suffix="%" />
+            </span>
+            <span className="text-sm text-ink-muted">skill coverage</span>
+          </div>
+          <Meter
+            className="mt-3"
+            value={verdict.score}
+            label="Job skill coverage"
+            band={{ fill: tone.fill, track: tone.track }}
+            size={large ? "md" : "sm"}
+          />
+        </div>
+      )}
+    </div>
+  );
+}
