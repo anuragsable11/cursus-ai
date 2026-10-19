@@ -10,6 +10,8 @@ type CardProps = {
   /** Visual weight: "raised" is the default white card, "flat" sits on the canvas. */
   tone?: "raised" | "flat" | "tint";
   padding?: "md" | "lg" | "none";
+  /** A gradient edge that catches the light, for the one card a view leads with. */
+  glow?: boolean;
   className?: string;
   children?: ReactNode;
 };
@@ -29,13 +31,14 @@ export function Card({
   actions,
   tone = "raised",
   padding = "md",
+  glow = false,
   className,
   children,
 }: CardProps) {
   const hasHeader = title || description || actions;
 
   return (
-    <section className={cn("rounded-2xl", tones[tone], paddings[padding], className)}>
+    <section className={cn("rounded-2xl", tones[tone], paddings[padding], glow && "edge-glow", className)}>
       {hasHeader && (
         <div className={cn("flex items-start justify-between gap-4", Boolean(children) && "mb-5")}>
           <div className="flex min-w-0 flex-1 items-start gap-3">

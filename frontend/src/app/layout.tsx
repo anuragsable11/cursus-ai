@@ -1,7 +1,6 @@
 import type { Metadata, Viewport } from "next";
 import { Fraunces, Geist, Geist_Mono } from "next/font/google";
 
-import { AppShell } from "@/components/app-shell";
 import { ToastHost } from "@/components/toast-host";
 import { THEME_INIT_SCRIPT } from "@/lib/theme-script";
 import "./globals.css";
@@ -46,10 +45,14 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
       className={`${geistSans.variable} ${geistMono.variable} ${fraunces.variable} h-full antialiased`}
     >
       <head>
-        <script dangerouslySetInnerHTML={{ __html: THEME_INIT_SCRIPT }} />
+        <script
+          type={typeof window === "undefined" ? "text/javascript" : "text/plain"}
+          suppressHydrationWarning
+          dangerouslySetInnerHTML={{ __html: THEME_INIT_SCRIPT }}
+        />
       </head>
       <body className="min-h-full font-sans">
-        <AppShell>{children}</AppShell>
+        {children}
         <ToastHost />
       </body>
     </html>

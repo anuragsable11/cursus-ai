@@ -8,23 +8,26 @@
 :root {
   color-scheme: light;
 
-  --canvas: #f6f6f4;
+  --canvas: #f5f5f2;
   --surface: #ffffff;
-  --surface-2: #f1f1ee;
-  --surface-3: #e9e9e5;
+  --surface-2: #f2f2ee;
+  --surface-3: #e8e8e3;
   --line: rgb(20 20 28 / 0.08);
   --line-strong: rgb(20 20 28 / 0.14);
 
-  --ink: #17181d;
-  --ink-muted: #5d6170;
-  --ink-faint: #8b8f9c;
+  --ink: #15161b;
+  --ink-muted: #5b5f6e;
+  --ink-faint: #868a97;
 
   --brand: #5b45e6;
   --brand-hover: #4c38d1;
   --brand-ink: #4a36c9;
-  --brand-tint: rgb(91 69 230 / 0.09);
+  --brand-tint: rgb(91 69 230 / 0.08);
   --brand-tint-strong: rgb(91 69 230 / 0.16);
   --on-brand: #ffffff;
+
+  /* Decorative only: gradients, glows and celebration. Never carries meaning. */
+  --accent-2: #0ea5c6;
 
   /* Status palette: fixed steps, always paired with an icon or label. */
   --good: #0ca30c;
@@ -36,8 +39,16 @@
   --critical: #d03b3b;
   --critical-tint: rgb(208 59 59 / 0.1);
 
-  --shadow-card: 0 1px 2px rgb(20 20 28 / 0.05), 0 0 0 1px rgb(20 20 28 / 0.05);
-  --shadow-pop: 0 12px 32px -8px rgb(20 20 28 / 0.18), 0 0 0 1px rgb(20 20 28 / 0.06);
+  --elev-card:
+    0 0 0 1px rgb(20 20 28 / 0.055), 0 1px 2px rgb(20 20 28 / 0.04), 0 6px 16px -6px rgb(20 20 28 / 0.06);
+  --elev-raised:
+    0 0 0 1px rgb(20 20 28 / 0.06), 0 2px 4px rgb(20 20 28 / 0.04), 0 18px 40px -12px rgb(20 20 28 / 0.16);
+  --elev-pop: 0 24px 60px -16px rgb(20 20 28 / 0.28), 0 0 0 1px rgb(20 20 28 / 0.07);
+  --highlight: inset 0 1px 0 rgb(255 255 255 / 0.9);
+
+  --aurora-1: rgb(91 69 230 / 0.16);
+  --aurora-2: rgb(14 165 198 / 0.12);
+  --grain-opacity: 0.06;
   --glow: radial-gradient(60% 50% at 50% 0%, rgb(91 69 230 / 0.1), transparent 70%);
 }
 
@@ -45,64 +56,80 @@
   :root:not([data-theme="light"]) {
     color-scheme: dark;
 
-    --canvas: #0c0d11;
-    --surface: #13141a;
-    --surface-2: #1a1b23;
-    --surface-3: #22232d;
-    --line: rgb(255 255 255 / 0.08);
-    --line-strong: rgb(255 255 255 / 0.14);
+    --canvas: #0a0b0f;
+    --surface: #121319;
+    --surface-2: #181a22;
+    --surface-3: #21232d;
+    --line: rgb(255 255 255 / 0.07);
+    --line-strong: rgb(255 255 255 / 0.13);
 
-    --ink: #ecedf1;
-    --ink-muted: #9da2b1;
-    --ink-faint: #6c7182;
+    --ink: #eef0f4;
+    --ink-muted: #a0a5b4;
+    --ink-faint: #6f7485;
 
-    --brand: #8b7cff;
-    --brand-hover: #9c8fff;
-    --brand-ink: #b5abff;
-    --brand-tint: rgb(139 124 255 / 0.12);
-    --brand-tint-strong: rgb(139 124 255 / 0.2);
-    --on-brand: #0c0d11;
+    --brand: #8d7eff;
+    --brand-hover: #a092ff;
+    --brand-ink: #b8afff;
+    --brand-tint: rgb(141 126 255 / 0.12);
+    --brand-tint-strong: rgb(141 126 255 / 0.22);
+    --on-brand: #0a0b0f;
+
+    --accent-2: #38d6f0;
 
     --good-tint: rgb(12 163 12 / 0.16);
     --warning-tint: rgb(250 178 25 / 0.16);
     --serious-tint: rgb(236 131 90 / 0.16);
     --critical-tint: rgb(208 59 59 / 0.16);
 
-    --shadow-card: 0 0 0 1px rgb(255 255 255 / 0.07);
-    --shadow-pop: 0 16px 40px -8px rgb(0 0 0 / 0.6), 0 0 0 1px rgb(255 255 255 / 0.08);
-    --glow: radial-gradient(60% 50% at 50% 0%, rgb(139 124 255 / 0.12), transparent 70%);
+    --elev-card: 0 0 0 1px rgb(255 255 255 / 0.06), 0 8px 24px -12px rgb(0 0 0 / 0.6);
+    --elev-raised: 0 0 0 1px rgb(255 255 255 / 0.09), 0 24px 48px -16px rgb(0 0 0 / 0.8);
+    --elev-pop: 0 28px 64px -12px rgb(0 0 0 / 0.75), 0 0 0 1px rgb(255 255 255 / 0.09);
+    --highlight: inset 0 1px 0 rgb(255 255 255 / 0.05);
+
+    --aurora-1: rgb(141 126 255 / 0.16);
+    --aurora-2: rgb(56 214 240 / 0.08);
+    --grain-opacity: 0.05;
+    --glow: radial-gradient(60% 50% at 50% 0%, rgb(141 126 255 / 0.12), transparent 70%);
   }
 }
 
 :root[data-theme="dark"] {
   color-scheme: dark;
 
-  --canvas: #0c0d11;
-  --surface: #13141a;
-  --surface-2: #1a1b23;
-  --surface-3: #22232d;
-  --line: rgb(255 255 255 / 0.08);
-  --line-strong: rgb(255 255 255 / 0.14);
+  --canvas: #0a0b0f;
+  --surface: #121319;
+  --surface-2: #181a22;
+  --surface-3: #21232d;
+  --line: rgb(255 255 255 / 0.07);
+  --line-strong: rgb(255 255 255 / 0.13);
 
-  --ink: #ecedf1;
-  --ink-muted: #9da2b1;
-  --ink-faint: #6c7182;
+  --ink: #eef0f4;
+  --ink-muted: #a0a5b4;
+  --ink-faint: #6f7485;
 
-  --brand: #8b7cff;
-  --brand-hover: #9c8fff;
-  --brand-ink: #b5abff;
-  --brand-tint: rgb(139 124 255 / 0.12);
-  --brand-tint-strong: rgb(139 124 255 / 0.2);
-  --on-brand: #0c0d11;
+  --brand: #8d7eff;
+  --brand-hover: #a092ff;
+  --brand-ink: #b8afff;
+  --brand-tint: rgb(141 126 255 / 0.12);
+  --brand-tint-strong: rgb(141 126 255 / 0.22);
+  --on-brand: #0a0b0f;
+
+  --accent-2: #38d6f0;
 
   --good-tint: rgb(12 163 12 / 0.16);
   --warning-tint: rgb(250 178 25 / 0.16);
   --serious-tint: rgb(236 131 90 / 0.16);
   --critical-tint: rgb(208 59 59 / 0.16);
 
-  --shadow-card: 0 0 0 1px rgb(255 255 255 / 0.07);
-  --shadow-pop: 0 16px 40px -8px rgb(0 0 0 / 0.6), 0 0 0 1px rgb(255 255 255 / 0.08);
-  --glow: radial-gradient(60% 50% at 50% 0%, rgb(139 124 255 / 0.12), transparent 70%);
+  --elev-card: 0 0 0 1px rgb(255 255 255 / 0.06), 0 8px 24px -12px rgb(0 0 0 / 0.6);
+  --elev-raised: 0 0 0 1px rgb(255 255 255 / 0.09), 0 24px 48px -16px rgb(0 0 0 / 0.8);
+  --elev-pop: 0 28px 64px -12px rgb(0 0 0 / 0.75), 0 0 0 1px rgb(255 255 255 / 0.09);
+  --highlight: inset 0 1px 0 rgb(255 255 255 / 0.05);
+
+  --aurora-1: rgb(141 126 255 / 0.16);
+  --aurora-2: rgb(56 214 240 / 0.08);
+  --grain-opacity: 0.05;
+  --glow: radial-gradient(60% 50% at 50% 0%, rgb(141 126 255 / 0.12), transparent 70%);
 }
 
 @theme inline {
@@ -123,6 +150,7 @@
   --color-brand-tint: var(--brand-tint);
   --color-brand-tint-strong: var(--brand-tint-strong);
   --color-on-brand: var(--on-brand);
+  --color-accent-2: var(--accent-2);
 
   --color-good: var(--good);
   --color-good-tint: var(--good-tint);
@@ -133,21 +161,23 @@
   --color-critical: var(--critical);
   --color-critical-tint: var(--critical-tint);
 
-  --shadow-card: var(--shadow-card);
-  --shadow-pop: var(--shadow-pop);
+  --shadow-card: var(--elev-card), var(--highlight);
+  --shadow-raised: var(--elev-raised), var(--highlight);
+  --shadow-pop: var(--elev-pop);
 
   --font-sans: var(--font-geist-sans), ui-sans-serif, system-ui, sans-serif;
   --font-display: var(--font-fraunces), Georgia, "Times New Roman", serif;
   --font-mono: var(--font-geist-mono), ui-monospace, monospace;
 
-  --animate-rise: rise 0.4s cubic-bezier(0.2, 0.8, 0.2, 1) both;
+  --animate-rise: rise 0.5s cubic-bezier(0.2, 0.8, 0.2, 1) both;
   --animate-fade: fade 0.25s ease-out both;
+  --animate-pop: pop 0.18s cubic-bezier(0.2, 0.8, 0.2, 1) both;
 }
 
 @keyframes rise {
   from {
     opacity: 0;
-    transform: translateY(8px);
+    transform: translateY(10px);
   }
   to {
     opacity: 1;
@@ -161,6 +191,38 @@
   }
   to {
     opacity: 1;
+  }
+}
+
+@keyframes pop {
+  from {
+    opacity: 0;
+    transform: translateY(-6px) scale(0.98);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+@keyframes grow {
+  from {
+    transform: scaleX(0);
+  }
+}
+
+@keyframes shimmer {
+  from {
+    background-position: 150% 0;
+  }
+  to {
+    background-position: -50% 0;
+  }
+}
+
+@keyframes flow {
+  to {
+    stroke-dashoffset: -40;
   }
 }
 
@@ -178,6 +240,20 @@ body {
   font-family: var(--font-geist-sans), ui-sans-serif, system-ui, sans-serif;
   -webkit-font-smoothing: antialiased;
   text-rendering: optimizeLegibility;
+  font-feature-settings: "ss01", "cv11";
+}
+
+/* Film grain on the canvas, so flat backgrounds read as material. It sits
+   behind content with normal blending: a blended overlay above the UI
+   forces full-page repaints, which stalls on CPU-bound machines. */
+body::after {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  opacity: var(--grain-opacity);
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 0.5 0 0 0 0 0.5 0 0 0 0 0.5 0 0 0 1 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
 }
 
 .font-display {
@@ -201,14 +277,197 @@ details > summary::-webkit-details-marker {
   display: none;
 }
 
+/* ---------------------------------------------------------------------------
+   Premium surface effects
+   --------------------------------------------------------------------------- */
+
+@layer components {
+  /* Soft colored light behind the content area. */
+  .aurora {
+    background:
+      radial-gradient(40rem 22rem at 85% -6rem, var(--aurora-1), transparent 70%),
+      radial-gradient(34rem 20rem at 30% -10rem, var(--aurora-2), transparent 70%);
+  }
+
+  /* A 1px gradient edge that catches the light, drawn with a mask. */
+  .edge-glow {
+    position: relative;
+    isolation: isolate;
+  }
+  .edge-glow::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    z-index: -1;
+    padding: 1px;
+    border-radius: inherit;
+    background: linear-gradient(
+      135deg,
+      color-mix(in oklab, var(--brand) 85%, transparent),
+      transparent 38%,
+      transparent 62%,
+      color-mix(in oklab, var(--accent-2) 70%, transparent)
+    );
+    -webkit-mask:
+      linear-gradient(#000 0 0) content-box,
+      linear-gradient(#000 0 0);
+    -webkit-mask-composite: xor;
+    mask-composite: exclude;
+    pointer-events: none;
+  }
+
+  /* Light that follows the cursor. Coordinates come from --mx / --my. */
+  .spotlight {
+    position: relative;
+    isolation: isolate;
+    overflow: hidden;
+  }
+  .spotlight::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    z-index: -1;
+    border-radius: inherit;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+    background: radial-gradient(
+      22rem circle at var(--mx, 50%) var(--my, 0%),
+      color-mix(in oklab, var(--brand) 12%, transparent),
+      transparent 60%
+    );
+    pointer-events: none;
+  }
+  .spotlight:hover::after {
+    opacity: 1;
+  }
+
+  .btn-primary {
+    background-image: linear-gradient(
+      180deg,
+      color-mix(in oklab, var(--brand) 82%, white),
+      var(--brand) 55%
+    );
+    box-shadow:
+      inset 0 1px 0 rgb(255 255 255 / 0.25),
+      inset 0 -1px 0 rgb(0 0 0 / 0.12),
+      0 1px 2px rgb(0 0 0 / 0.12),
+      0 8px 20px -8px var(--brand);
+  }
+  .btn-primary:hover {
+    background-image: linear-gradient(
+      180deg,
+      color-mix(in oklab, var(--brand-hover) 78%, white),
+      var(--brand-hover) 55%
+    );
+    box-shadow:
+      inset 0 1px 0 rgb(255 255 255 / 0.3),
+      inset 0 -1px 0 rgb(0 0 0 / 0.12),
+      0 1px 2px rgb(0 0 0 / 0.12),
+      0 12px 28px -8px var(--brand);
+  }
+
+  .shimmer {
+    background-color: var(--surface-2);
+    background-image: linear-gradient(
+      100deg,
+      transparent 30%,
+      color-mix(in oklab, var(--surface) 70%, transparent) 50%,
+      transparent 70%
+    );
+    background-size: 200% 100%;
+    animation: shimmer 1.6s ease-in-out infinite;
+  }
+
+  .meter-fill {
+    transform-origin: left center;
+    animation: grow 0.9s cubic-bezier(0.2, 0.8, 0.2, 1) both;
+  }
+
+  .stagger > * {
+    animation: rise 0.5s cubic-bezier(0.2, 0.8, 0.2, 1) both;
+  }
+  .stagger > *:nth-child(2) {
+    animation-delay: 60ms;
+  }
+  .stagger > *:nth-child(3) {
+    animation-delay: 120ms;
+  }
+  .stagger > *:nth-child(4) {
+    animation-delay: 180ms;
+  }
+  .stagger > *:nth-child(n + 5) {
+    animation-delay: 240ms;
+  }
+
+  .flow-dash {
+    stroke-dasharray: 6 14;
+    animation: flow 1.6s linear infinite;
+  }
+}
+
+/* ---------------------------------------------------------------------------
+   Route transitions: content slides in the direction of the journey while
+   the app chrome stays still.
+   --------------------------------------------------------------------------- */
+
+::view-transition {
+  pointer-events: none;
+}
+
+::view-transition-old(root),
+::view-transition-new(root) {
+  animation: none;
+}
+
+::view-transition-old(.nav-forward) {
+  --slide-offset: -40px;
+  animation:
+    140ms ease-in both fade reverse,
+    320ms cubic-bezier(0.4, 0, 0.2, 1) both slide reverse;
+}
+::view-transition-new(.nav-forward) {
+  --slide-offset: 40px;
+  animation:
+    220ms ease-out 120ms both fade,
+    320ms cubic-bezier(0.4, 0, 0.2, 1) both slide;
+}
+::view-transition-old(.nav-back) {
+  --slide-offset: 40px;
+  animation:
+    140ms ease-in both fade reverse,
+    320ms cubic-bezier(0.4, 0, 0.2, 1) both slide reverse;
+}
+::view-transition-new(.nav-back) {
+  --slide-offset: -40px;
+  animation:
+    220ms ease-out 120ms both fade,
+    320ms cubic-bezier(0.4, 0, 0.2, 1) both slide;
+}
+
+@keyframes slide {
+  from {
+    translate: var(--slide-offset);
+  }
+  to {
+    translate: 0;
+  }
+}
+
 @media (prefers-reduced-motion: reduce) {
   *,
   *::before,
   *::after {
     animation-duration: 0.01ms !important;
     animation-iteration-count: 1 !important;
+    animation-delay: 0s !important;
     transition-duration: 0.01ms !important;
     scroll-behavior: auto !important;
+  }
+  ::view-transition-old(*),
+  ::view-transition-new(*),
+  ::view-transition-group(*) {
+    animation-duration: 0s !important;
+    animation-delay: 0s !important;
   }
 }
 
@@ -231,11 +490,19 @@ details > summary::-webkit-details-marker {
     --brand: #4a36c9;
     --brand-ink: #4a36c9;
     --brand-tint: #f1effd;
-    --shadow-card: none;
+    --elev-card: none;
+    --elev-raised: none;
+    --elev-pop: none;
+    --highlight: 0 0 #0000;
     --glow: none;
   }
   body {
     background: #fff;
+  }
+  body::after,
+  .aurora,
+  .edge-glow::before {
+    display: none !important;
   }
   .print-hidden {
     display: none !important;

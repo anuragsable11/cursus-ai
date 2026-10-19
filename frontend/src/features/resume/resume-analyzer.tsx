@@ -94,6 +94,7 @@ export function ResumeAnalyzer() {
     <>
       <PageHeader
         eyebrow="Step 1 of 3"
+        step={1}
         title="Resume Analyzer"
         description="Upload your resume to detect skills, experience, education and projects. The skill list is shared with every other step and stays editable."
       />

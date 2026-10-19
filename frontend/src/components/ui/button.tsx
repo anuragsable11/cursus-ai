@@ -1,7 +1,8 @@
-import Link from "next/link";
+import type Link from "next/link";
 import { LoaderCircle } from "lucide-react";
 import type { ComponentProps, ReactNode } from "react";
 
+import { NavLink } from "@/components/nav-link";
 import { cn } from "@/lib/cn";
 
 type Variant = "primary" | "secondary" | "ghost" | "danger";
@@ -13,8 +14,8 @@ const base =
   "disabled:pointer-events-none disabled:opacity-50";
 
 const variants: Record<Variant, string> = {
-  primary: "bg-brand text-on-brand shadow-[0_1px_0_rgb(0_0_0/0.08)_inset,0_6px_16px_-8px_var(--brand)] hover:bg-brand-hover",
-  secondary: "bg-surface text-ink shadow-card hover:bg-surface-2",
+  primary: "btn-primary text-on-brand",
+  secondary: "bg-surface text-ink shadow-card hover:shadow-raised hover:bg-surface",
   ghost: "text-ink-muted hover:bg-surface-2 hover:text-ink",
   danger: "bg-critical-tint text-critical hover:bg-critical/20",
 };
@@ -69,10 +70,10 @@ type ButtonLinkProps = ComponentProps<typeof Link> & {
 
 export function ButtonLink({ variant = "primary", size = "md", icon, className, children, ...props }: ButtonLinkProps) {
   return (
-    <Link className={buttonClasses(variant, size, className)} {...props}>
+    <NavLink className={buttonClasses(variant, size, className)} {...props}>
       {icon}
       {children}
-    </Link>
+    </NavLink>
   );
 }
 

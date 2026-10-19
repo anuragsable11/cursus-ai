@@ -1,8 +1,8 @@
 "use client";
 
-import Link from "next/link";
 import { CircleAlert, CircleCheck, Info, X } from "lucide-react";
 
+import { NavLink } from "@/components/nav-link";
 import { dismissToast, useToasts } from "@/lib/toasts";
 
 const icons = {
@@ -31,13 +31,13 @@ export function ToastHost() {
             <p className="font-medium text-ink">{toast.title}</p>
             {toast.description && <p className="mt-0.5 leading-5 text-ink-muted">{toast.description}</p>}
             {toast.href && (
-              <Link
+              <NavLink
                 href={toast.href}
                 onClick={() => dismissToast(toast.id)}
                 className="mt-2 inline-block text-xs font-semibold text-brand-ink hover:underline"
               >
                 {toast.actionLabel ?? "Open"}
-              </Link>
+              </NavLink>
             )}
           </div>
           <button

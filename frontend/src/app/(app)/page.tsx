@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 
+import { PageTransition } from "@/components/page-transition";
 import { Dashboard } from "@/features/dashboard/dashboard";
 
 export const metadata: Metadata = {
@@ -7,5 +8,9 @@ export const metadata: Metadata = {
 };
 
 export default function HomePage() {
-  return <Dashboard />;
+  return (
+    <PageTransition>
+      <Dashboard />
+    </PageTransition>
+  );
 }

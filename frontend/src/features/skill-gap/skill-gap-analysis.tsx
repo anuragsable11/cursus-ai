@@ -72,6 +72,7 @@ export function SkillGapAnalysis() {
     <>
       <PageHeader
         eyebrow="Step 3 of 3"
+        step={3}
         title="Skill Gap Roadmap"
         description="Prioritize the skills to strengthen for your target job, then follow a week-by-week plan with projects and check off what you learn."
         actions={

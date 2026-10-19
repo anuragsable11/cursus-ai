@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 
+import { PageTransition } from "@/components/page-transition";
 import { SkillGapAnalysis } from "@/features/skill-gap/skill-gap-analysis";
 
 export const metadata: Metadata = {
@@ -7,5 +8,9 @@ export const metadata: Metadata = {
 };
 
 export default function SkillGapAnalysisPage() {
-  return <SkillGapAnalysis />;
+  return (
+    <PageTransition>
+      <SkillGapAnalysis />
+    </PageTransition>
+  );
 }

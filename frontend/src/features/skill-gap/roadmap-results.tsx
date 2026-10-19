@@ -13,14 +13,19 @@ import {
   TriangleAlert,
   Zap,
 } from "lucide-react";
-import { useState, type ReactNode } from "react";
+import { useState, type ChangeEvent, type ReactNode } from "react";
 
 import { Button } from "@/components/ui/button";
+import { CheckboxBox } from "@/components/ui/checkbox";
+import { CountUp } from "@/components/ui/count-up";
 import { Card, SectionLabel } from "@/components/ui/card";
 import { Chip, ChipList, type ChipTone } from "@/components/ui/chip";
-import { coverageBand, Meter, ProgressBar } from "@/components/ui/meter";
-import { HeroFigure, Stat } from "@/components/ui/stat";
+import { MatchVerdictBlock } from "@/components/match-verdict";
+import { ProgressBar } from "@/components/ui/meter";
+import { Stat } from "@/components/ui/stat";
 import { cn } from "@/lib/cn";
+import { verdictForRoadmap } from "@/lib/match-verdict";
+import { celebrate, centerOf } from "@/lib/motion";
 import {
   countDone,
   countTopics,
@@ -30,6 +35,7 @@ import {
   useRoadmapProgress,
   weekProgress,
 } from "@/lib/progress";
+import { pushToast } from "@/lib/toasts";
 import type { GapExplanation, GapPriority, RoadmapWeek, SavedRoadmap } from "@/lib/types";
 import { formatDateTime } from "@/lib/use-now";
 
@@ -48,7 +54,7 @@ export function RoadmapResults({ saved, stale }: Props) {
   const done = useRoadmapProgress(saved.generatedAt);
   const totalTopics = countTopics(weeks);
   const doneTopics = countDone(weeks, done);
-  const band = coverageBand(result.match_score);
+  const verdict = verdictForRoadmap(result);
 
   const explanations = result.gap_explanations ?? [];
   const explained = new Set(explanations.map((item) => item.skill.toLowerCase()));
@@ -88,22 +94,10 @@ export function RoadmapResults({ saved, stale }: Props) {
         )}
       </div>
 
-      <Card padding="lg">
+      <Card padding="lg" glow={isAi}>
         <div className="grid gap-8 lg:grid-cols-[minmax(0,5fr)_minmax(0,7fr)]">
           <div>
-            <SectionLabel>Job skill coverage</SectionLabel>
-            <HeroFigure
-              className="mt-3"
-              value={`${result.match_score}%`}
-              label={`${result.matched_job_skills.length} of ${
-                result.matched_job_skills.length + result.job_specific_gaps.length
-              } skills this job mentions`}
-            />
-            <Meter className="mt-5" value={result.match_score} label="Job skill coverage" band={band} />
-            <p className="mt-3 flex items-center gap-1.5 text-sm font-medium text-ink">
-              {band.icon}
-              {band.label}
-            </p>
+            <MatchVerdictBlock verdict={verdict} label="Match with this job" />
           </div>
 
           <div>
@@ -120,9 +114,9 @@ export function RoadmapResults({ saved, stale }: Props) {
               </p>
             )}
             <div className="mt-6 grid grid-cols-3 gap-3">
-              <Stat label="Skills to build" value={result.prioritized_gaps.length} />
-              <Stat label="Already have" value={result.matched_job_skills.length} />
-              <Stat label="Weeks" value={result.target_weeks} />
+              <Stat label="Skills to build" value={<CountUp value={result.prioritized_gaps.length} />} />
+              <Stat label="Already have" value={<CountUp value={result.matched_job_skills.length} />} />
+              <Stat label="Weeks" value={<CountUp value={result.target_weeks} />} />
             </div>
           </div>
         </div>
@@ -162,7 +156,14 @@ export function RoadmapResults({ saved, stale }: Props) {
         )}
       </section>
 
-      <WeeklyPlan key={saved.generatedAt} weeks={weeks} roadmapId={saved.generatedAt} done={done} />
+      <WeeklyPlan
+        key={saved.generatedAt}
+        weeks={weeks}
+        roadmapId={saved.generatedAt}
+        done={done}
+        planDone={doneTopics}
+        planTotal={totalTopics}
+      />
 
       {(projects.length > 0 || interview.length > 0) && (
         <div className="grid gap-5 lg:grid-cols-2">
@@ -235,7 +236,15 @@ function GapCard({ item, index }: { item: GapExplanation; index: number }) {
   );
 }
 
-function WeeklyPlan({ weeks, roadmapId, done }: { weeks: RoadmapWeek[]; roadmapId: string; done: Record<string, true> }) {
+type PlanTotals = { planDone: number; planTotal: number };
+
+function WeeklyPlan({
+  weeks,
+  roadmapId,
+  done,
+  planDone,
+  planTotal,
+}: { weeks: RoadmapWeek[]; roadmapId: string; done: Record<string, true> } & PlanTotals) {
   const firstOpen = weeks.findIndex((week) => !weekProgress(week, done).complete);
   const [selected, setSelected] = useState(firstOpen === -1 ? 0 : firstOpen);
   const index = Math.min(selected, weeks.length - 1);
@@ -278,10 +287,16 @@ function WeeklyPlan({ weeks, roadmapId, done }: { weeks: RoadmapWeek[]; roadmapI
               aria-controls={`week-panel-${item.week}`}
               onClick={() => setSelected(tabIndex)}
               className={cn(
-                "flex shrink-0 items-center gap-2 rounded-xl px-3.5 py-2 text-sm transition-colors",
+                "relative flex shrink-0 items-center gap-2 rounded-xl px-3.5 pt-2 pb-3 text-sm transition-colors",
                 active ? "bg-surface font-medium text-ink shadow-card" : "text-ink-muted hover:bg-surface-2 hover:text-ink",
               )}
             >
+              <span className="absolute inset-x-3.5 bottom-1.5 h-0.5 overflow-hidden rounded-full bg-line" aria-hidden>
+                <span
+                  className="block h-full rounded-full bg-brand transition-[width] duration-500"
+                  style={{ width: `${progress.total ? (progress.completed / progress.total) * 100 : 0}%` }}
+                />
+              </span>
               {progress.complete ? (
                 <span className="flex size-4 items-center justify-center rounded-full bg-good text-white" aria-hidden>
                   <Check className="size-3" strokeWidth={3} />
@@ -308,10 +323,21 @@ function WeeklyPlan({ weeks, roadmapId, done }: { weeks: RoadmapWeek[]; roadmapI
           roadmapId={roadmapId}
           done={done}
           hidden={panelIndex !== index}
+          planDone={planDone}
+          planTotal={planTotal}
         />
       ))}
     </section>
   );
+}
+
+function celebratePlan() {
+  celebrate(undefined, 220);
+  pushToast({
+    tone: "success",
+    title: "Roadmap complete",
+    description: "Every topic is ticked off. Time to ship those projects.",
+  });
 }
 
 function WeekPanel({
@@ -319,13 +345,31 @@ function WeekPanel({
   roadmapId,
   done,
   hidden,
+  planDone,
+  planTotal,
 }: {
   week: RoadmapWeek;
   roadmapId: string;
   done: Record<string, true>;
   hidden: boolean;
-}) {
+} & PlanTotals) {
   const progress = weekProgress(week, done);
+
+  function toggleTopic(key: string, event: ChangeEvent<HTMLInputElement>) {
+    const checked = event.target.checked;
+    setTopicDone(roadmapId, key, checked);
+    if (!checked) return;
+    if (planDone + 1 === planTotal) celebratePlan();
+    else if (progress.completed + 1 === progress.total) celebrate(centerOf(event.target));
+  }
+
+  function toggleWeek(element: HTMLElement) {
+    const completing = !progress.complete;
+    setWeekDone(roadmapId, week, completing);
+    if (!completing) return;
+    if (planDone - progress.completed + progress.total === planTotal) celebratePlan();
+    else celebrate(centerOf(element));
+  }
   const title = week.title.replace(/^Week \d+:\s*/, "");
 
   return (
@@ -355,7 +399,7 @@ function WeekPanel({
             variant={progress.complete ? "ghost" : "secondary"}
             size="sm"
             className="print-hidden"
-            onClick={() => setWeekDone(roadmapId, week, !progress.complete)}
+            onClick={(event) => toggleWeek(event.currentTarget)}
             icon={progress.complete ? undefined : <Check aria-hidden />}
           >
             {progress.complete ? "Mark week incomplete" : "Mark week complete"}
@@ -378,13 +422,13 @@ function WeekPanel({
                   return (
                     <li key={topic}>
                       <label className="flex cursor-pointer items-start gap-2.5 rounded-lg px-1.5 py-1.5 text-sm leading-5 transition-colors hover:bg-surface">
-                        <input
-                          type="checkbox"
-                          checked={checked}
-                          onChange={(event) => setTopicDone(roadmapId, key, event.target.checked)}
-                          className="mt-0.5 size-4 shrink-0 cursor-pointer rounded accent-brand"
-                        />
-                        <span className={cn(checked ? "text-ink-faint line-through decoration-ink-faint/60" : "text-ink")}>
+                        <CheckboxBox className="mt-px" checked={checked} onChange={(event) => toggleTopic(key, event)} />
+                        <span
+                          className={cn(
+                            "transition-colors duration-300",
+                            checked ? "text-ink-faint line-through decoration-ink-faint/60" : "text-ink",
+                          )}
+                        >
                           {topic}
                         </span>
                       </label>

@@ -1,6 +1,5 @@
 "use client";
 
-import Link from "next/link";
 import { usePathname } from "next/navigation";
 import {
   BriefcaseBusiness,
@@ -9,18 +8,27 @@ import {
   LayoutDashboard,
   LoaderCircle,
   Route,
-  Sparkles,
+  Search,
   type LucideIcon,
 } from "lucide-react";
 import type { ReactNode } from "react";
 
 import { BackendBanner } from "@/components/backend-banner";
+import { BrandMark } from "@/components/brand-mark";
+import { CommandPalette } from "@/components/command-palette";
+import { LiveElapsed } from "@/components/live-elapsed";
+import { NavLink } from "@/components/nav-link";
 import { ThemeCycleButton, ThemeToggle } from "@/components/theme-toggle";
+import { UserMenu } from "@/components/user-menu";
+import { ProgressBar } from "@/components/ui/meter";
 import { useProfile, useSavedMatch, useSavedRoadmap } from "@/lib/app-state";
 import { cn } from "@/lib/cn";
+import { verdictForMatch } from "@/lib/match-verdict";
+import { openPalette, useIsMac } from "@/lib/command-palette";
+import { countDone, countTopics, useRoadmapProgress } from "@/lib/progress";
 import { useRoadmapJob } from "@/lib/roadmap-job";
 import { useSystemStatus } from "@/lib/system-status";
-import { formatDuration, useNow } from "@/lib/use-now";
+import type { SavedRoadmap } from "@/lib/types";
 
 type StepState = "todo" | "done" | "running";
 
@@ -54,7 +62,7 @@ function useJourney(): Step[] {
       label: "Job match",
       icon: BriefcaseBusiness,
       state: match ? "done" : "todo",
-      detail: !ready ? "" : match ? `${match.result.match_score}% coverage` : "Paste a job description",
+      detail: !ready ? "" : match ? verdictForMatch(match.result).short : "Paste a job description",
     },
     {
       href: "/skill-gap-analysis",
@@ -80,6 +88,8 @@ export function AppShell({ children }: { children: ReactNode }) {
 
   return (
     <div className="flex min-h-full">
+      <div className="aurora pointer-events-none fixed inset-0 -z-10" aria-hidden />
+
       <a
         href="#main"
         className="sr-only z-50 rounded-lg bg-brand px-3 py-2 text-sm text-on-brand focus:not-sr-only focus:fixed focus:top-3 focus:left-3"
@@ -101,29 +111,51 @@ export function AppShell({ children }: { children: ReactNode }) {
       </div>
 
       <BottomTabs pathname={pathname} steps={steps} />
+      <CommandPalette />
     </div>
   );
 }
 
 function Brand() {
   return (
-    <Link href="/" className="flex items-center gap-2.5 rounded-lg">
-      <span className="flex size-8 items-center justify-center rounded-lg bg-brand text-on-brand shadow-[0_6px_16px_-6px_var(--brand)]">
-        <Sparkles className="size-4" aria-hidden />
-      </span>
-      <span className="font-display text-[17px] font-medium tracking-tight text-ink">
+    <NavLink href="/" className="flex items-center gap-2.5 rounded-lg">
+      <BrandMark className="drop-shadow-[0_6px_14px_color-mix(in_oklab,var(--brand)_45%,transparent)]" />
+      <span className="font-display text-[18px] font-medium tracking-tight text-ink">
         Cursus <span className="text-brand-ink">AI</span>
       </span>
-    </Link>
+    </NavLink>
+  );
+}
+
+function SearchButton() {
+  const isMac = useIsMac();
+  return (
+    <button
+      type="button"
+      onClick={openPalette}
+      className="flex h-10 w-full items-center gap-2.5 rounded-xl bg-surface px-3 text-sm text-ink-faint shadow-card transition-shadow hover:shadow-raised"
+    >
+      <Search className="size-4" aria-hidden />
+      <span className="flex-1 text-left">Jump to…</span>
+      <kbd className="rounded-md bg-surface-2 px-1.5 py-0.5 font-mono text-[11px] text-ink-muted">
+        {isMac ? "⌘K" : "Ctrl K"}
+      </kbd>
+    </button>
   );
 }
 
 function Sidebar({ pathname, steps }: { pathname: string; steps: Step[] }) {
+  const { value: roadmap } = useSavedRoadmap();
+
   return (
-    <aside className="print-hidden sticky top-0 hidden h-screen w-[272px] shrink-0 flex-col border-r border-line bg-surface/60 px-5 py-6 lg:flex">
+    <aside className="print-hidden sticky top-0 hidden h-screen w-[272px] shrink-0 flex-col border-r border-line bg-surface/70 px-5 py-6 backdrop-blur-md lg:flex">
       <Brand />
 
-      <nav aria-label="Main" className="mt-8 flex-1">
+      <div className="mt-6">
+        <SearchButton />
+      </div>
+
+      <nav aria-label="Main" className="mt-6 flex-1">
         <NavItem href="/" active={pathname === "/"} icon={LayoutDashboard} label="Dashboard" />
 
         <p className="mt-6 mb-2 px-3 text-[11px] font-semibold uppercase tracking-[0.14em] text-ink-faint">
@@ -133,15 +165,24 @@ function Sidebar({ pathname, steps }: { pathname: string; steps: Step[] }) {
           {steps.map((step, index) => (
             <li key={step.href} className="relative">
               {index < steps.length - 1 && (
-                <span className="absolute top-9 left-[23px] h-[calc(100%-1.25rem)] w-px bg-line" aria-hidden />
+                <span
+                  className={cn(
+                    "absolute top-9 left-[23px] h-[calc(100%-1.25rem)] w-px",
+                    step.state === "done" ? "bg-linear-to-b from-good/60 to-line" : "bg-line",
+                  )}
+                  aria-hidden
+                />
               )}
               <JourneyItem step={step} index={index} active={pathname.startsWith(step.href)} />
             </li>
           ))}
         </ol>
+
+        {roadmap && <SidebarProgress roadmap={roadmap} />}
       </nav>
 
-      <div className="mt-6 space-y-4 border-t border-line pt-5">
+      <div className="mt-6 space-y-4 border-t border-line pt-4">
+        <UserMenu />
         <SystemRows />
         <ThemeToggle />
       </div>
@@ -149,9 +190,34 @@ function Sidebar({ pathname, steps }: { pathname: string; steps: Step[] }) {
   );
 }
 
+function SidebarProgress({ roadmap }: { roadmap: SavedRoadmap }) {
+  const done = useRoadmapProgress(roadmap.generatedAt);
+  const weeks = roadmap.result.weekly_roadmap;
+  const total = countTopics(weeks);
+  const completed = countDone(weeks, done);
+  if (total === 0) return null;
+  const percent = Math.round((completed / total) * 100);
+
+  return (
+    <NavLink
+      href="/skill-gap-analysis"
+      className="mt-6 block rounded-xl bg-surface p-3.5 shadow-card transition-shadow hover:shadow-raised"
+    >
+      <div className="flex items-baseline justify-between text-xs">
+        <span className="font-medium text-ink">Plan progress</span>
+        <span className="text-ink-faint">{percent}%</span>
+      </div>
+      <ProgressBar className="mt-2" value={completed} max={total} label="Plan progress" />
+      <p className="mt-2 text-[11px] text-ink-faint">
+        {completed} of {total} topics done
+      </p>
+    </NavLink>
+  );
+}
+
 function NavItem({ href, active, icon: Icon, label }: { href: string; active: boolean; icon: LucideIcon; label: string }) {
   return (
-    <Link
+    <NavLink
       href={href}
       aria-current={active ? "page" : undefined}
       className={cn(
@@ -161,13 +227,13 @@ function NavItem({ href, active, icon: Icon, label }: { href: string; active: bo
     >
       <Icon className={cn("size-4", active && "text-brand-ink")} aria-hidden />
       {label}
-    </Link>
+    </NavLink>
   );
 }
 
 function JourneyItem({ step, index, active }: { step: Step; index: number; active: boolean }) {
   return (
-    <Link
+    <NavLink
       href={step.href}
       aria-current={active ? "page" : undefined}
       className={cn(
@@ -182,7 +248,7 @@ function JourneyItem({ step, index, active }: { step: Step; index: number; activ
           {step.state === "running" ? <RunningDetail label={step.detail} /> : step.detail || " "}
         </span>
       </span>
-    </Link>
+    </NavLink>
   );
 }
 
@@ -191,9 +257,9 @@ function StepBadge({ state, index }: { state: StepState; index: number }) {
     <span
       className={cn(
         "relative z-10 flex size-6 shrink-0 items-center justify-center rounded-full text-[11px] font-semibold",
-        state === "done" && "bg-good text-white",
-        state === "running" && "bg-brand-tint text-brand-ink",
-        state === "todo" && "bg-surface-3 text-ink-muted",
+        state === "done" && "bg-good text-white shadow-[0_0_0_4px_var(--good-tint)]",
+        state === "running" && "bg-brand-tint text-brand-ink shadow-[0_0_0_4px_var(--brand-tint)]",
+        state === "todo" && "bg-surface text-ink-muted shadow-card",
       )}
       aria-hidden
     >
@@ -210,11 +276,15 @@ function StepBadge({ state, index }: { state: StepState; index: number }) {
 
 function RunningDetail({ label }: { label: string }) {
   const job = useRoadmapJob();
-  const now = useNow();
-  const elapsed = job.status === "running" && now ? (now - job.startedAt) / 1000 : 0;
   return (
     <span className="text-brand-ink">
-      {label} · <span className="tabular-nums">{formatDuration(elapsed)}</span>
+      {label}
+      {job.status === "running" && (
+        <>
+          {" · "}
+          <LiveElapsed startedAt={job.startedAt} />
+        </>
+      )}
     </span>
   );
 }
@@ -259,18 +329,26 @@ function TopBar() {
     status.backend === "checking" ? "bg-ink-faint" : status.backend === "offline" ? "bg-critical" : "bg-good";
 
   return (
-    <header className="print-hidden sticky top-0 z-30 flex h-14 items-center justify-between border-b border-line bg-canvas/85 px-4 backdrop-blur-md lg:hidden">
+    <header className="print-hidden sticky top-0 z-30 flex h-14 items-center justify-between border-b border-line bg-canvas/80 px-4 backdrop-blur-xl lg:hidden">
       <Brand />
-      <div className="flex items-center gap-1">
+      <div className="flex items-center gap-0.5">
         {job.status === "running" && job.mode === "ai" && (
-          <Link
+          <NavLink
             href="/skill-gap-analysis"
             className="mr-1 inline-flex h-8 items-center gap-1.5 rounded-full bg-brand-tint px-2.5 text-xs font-medium text-brand-ink"
           >
             <LoaderCircle className="size-3.5 animate-spin" aria-hidden />
             AI
-          </Link>
+          </NavLink>
         )}
+        <button
+          type="button"
+          onClick={openPalette}
+          aria-label="Open command menu"
+          className="flex size-9 items-center justify-center rounded-lg text-ink-muted hover:bg-surface-2 hover:text-ink"
+        >
+          <Search className="size-4" aria-hidden />
+        </button>
         <ThemeCycleButton />
         <span
           className="flex size-9 items-center justify-center"
@@ -279,6 +357,7 @@ function TopBar() {
           <span className={cn("size-2 rounded-full", dot)} aria-hidden />
           <span className="sr-only">{status.backend === "offline" ? "Backend offline" : "Backend online"}</span>
         </span>
+        <UserMenu compact />
       </div>
     </header>
   );
@@ -290,21 +369,22 @@ function BottomTabs({ pathname, steps }: { pathname: string; steps: Step[] }) {
   return (
     <nav
       aria-label="Main"
-      className="print-hidden fixed inset-x-0 bottom-0 z-30 border-t border-line bg-surface/90 pb-[env(safe-area-inset-bottom)] backdrop-blur-md lg:hidden"
+      className="print-hidden fixed inset-x-0 bottom-0 z-30 border-t border-line bg-surface/85 pb-[env(safe-area-inset-bottom)] backdrop-blur-xl lg:hidden"
     >
       <ul className="grid grid-cols-4">
         {tabs.map(({ href, label, icon: Icon, state }) => {
           const active = href === "/" ? pathname === "/" : pathname.startsWith(href);
           return (
             <li key={href}>
-              <Link
+              <NavLink
                 href={href}
                 aria-current={active ? "page" : undefined}
                 className={cn(
-                  "relative flex h-14 flex-col items-center justify-center gap-1 text-[11px] font-medium",
+                  "relative flex h-14 flex-col items-center justify-center gap-1 text-[11px] font-medium transition-colors",
                   active ? "text-brand-ink" : "text-ink-faint",
                 )}
               >
+                {active && <span className="absolute top-0 h-0.5 w-8 rounded-full bg-brand" aria-hidden />}
                 <Icon className="size-5" aria-hidden />
                 {label}
                 {state === "running" && (
@@ -313,7 +393,7 @@ function BottomTabs({ pathname, steps }: { pathname: string; steps: Step[] }) {
                 {state === "done" && !active && (
                   <span className="absolute top-2 right-[calc(50%-16px)] size-1.5 rounded-full bg-good" aria-hidden />
                 )}
-              </Link>
+              </NavLink>
             </li>
           );
         })}

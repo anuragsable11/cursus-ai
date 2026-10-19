@@ -1,6 +1,7 @@
 import { API_URL } from "./config";
 import type {
   AiStatus,
+  AuthUser,
   MatchResult,
   ResumeAnalysisResponse,
   RoadmapResult,
@@ -25,10 +26,20 @@ type RequestOptions = {
   form?: FormData;
   timeoutMs?: number;
   signal?: AbortSignal;
+  /** Auth endpoints handle 401 themselves instead of signing the user out. */
+  skipUnauthorizedHandler?: boolean;
 };
 
+// Registered by the auth module, so an expired session anywhere sends the
+// user back to sign in. Kept as a hook to avoid a circular import.
+let onUnauthorized: (() => void) | null = null;
+
+export function setUnauthorizedHandler(handler: (() => void) | null) {
+  onUnauthorized = handler;
+}
+
 async function request<T>(path: string, options: RequestOptions = {}): Promise<T> {
-  const { json, form, timeoutMs = 30_000, signal } = options;
+  const { json, form, timeoutMs = 30_000, signal, skipUnauthorizedHandler = false } = options;
   const controller = new AbortController();
   let timedOut = false;
 
@@ -49,6 +60,8 @@ async function request<T>(path: string, options: RequestOptions = {}): Promise<T
         headers: json !== undefined ? { "Content-Type": "application/json" } : undefined,
         body: json !== undefined ? JSON.stringify(json) : form,
         signal: controller.signal,
+        // Send and accept the HttpOnly session cookie from the API.
+        credentials: "include",
       });
     } catch {
       if (timedOut) {
@@ -69,8 +82,11 @@ async function request<T>(path: string, options: RequestOptions = {}): Promise<T
     const data: unknown = await response.json().catch(() => null);
 
     if (!response.ok) {
+      if (response.status === 401 && !skipUnauthorizedHandler) onUnauthorized?.();
       throw new ApiError(describeError(data, response.status), "http", response.status);
     }
+
+    if (response.status === 204) return undefined as T;
 
     return data as T;
   } finally {
@@ -128,6 +144,16 @@ export type AnalysisRequest = {
 };
 
 export const api = {
+  me: () => request<AuthUser>("/api/v1/auth/me", { timeoutMs: 8_000, skipUnauthorizedHandler: true }),
+
+  login: (body: { email: string; password: string; remember: boolean }) =>
+    request<AuthUser>("/api/v1/auth/login", { json: body, skipUnauthorizedHandler: true }),
+
+  register: (body: { name: string; email: string; password: string }) =>
+    request<AuthUser>("/api/v1/auth/register", { json: body, skipUnauthorizedHandler: true }),
+
+  logout: () => request<void>("/api/v1/auth/logout", { json: {}, skipUnauthorizedHandler: true }),
+
   health: () => request<{ status: string }>("/health", { timeoutMs: 4_000 }),
 
   aiStatus: () => request<AiStatus>("/api/v1/ai/status", { timeoutMs: 6_000 }),

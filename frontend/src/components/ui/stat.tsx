@@ -47,8 +47,14 @@ type EmptyStateProps = {
 export function EmptyState({ icon, title, description, action, className }: EmptyStateProps) {
   return (
     <div className={cn("flex flex-col items-center justify-center px-4 py-14 text-center", className)}>
-      <span className="flex size-12 items-center justify-center rounded-2xl bg-brand-tint text-brand-ink [&_svg]:size-5">
-        {icon}
+      <span className="relative flex size-24 items-center justify-center" aria-hidden>
+        <span className="absolute inset-0 rounded-full bg-brand-tint/50" />
+        <span className="absolute inset-3 rounded-full bg-brand-tint" />
+        <span className="absolute top-2 right-3 size-2 rounded-full bg-accent-2/70" />
+        <span className="absolute bottom-4 left-2 size-1.5 rounded-full bg-brand/60" />
+        <span className="relative flex size-12 items-center justify-center rounded-2xl bg-surface text-brand-ink shadow-raised [&_svg]:size-5">
+          {icon}
+        </span>
       </span>
       <h3 className="mt-5 font-display text-xl font-medium text-ink">{title}</h3>
       <p className="mt-2 max-w-sm text-sm leading-6 text-ink-muted">{description}</p>
@@ -58,5 +64,5 @@ export function EmptyState({ icon, title, description, action, className }: Empt
 }
 
 export function Skeleton({ className }: { className?: string }) {
-  return <div className={cn("animate-pulse rounded-xl bg-surface-3", className)} aria-hidden />;
+  return <div className={cn("shimmer rounded-xl", className)} aria-hidden />;
 }

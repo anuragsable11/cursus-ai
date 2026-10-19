@@ -1,6 +1,6 @@
 import { useSyncExternalStore } from "react";
 
-import { api } from "./api";
+import { api, ApiError } from "./api";
 import type { AiStatus } from "./types";
 
 export type SystemStatus = {
@@ -33,12 +33,13 @@ export function refreshSystemStatus(): Promise<void> {
       return;
     }
 
-    let ai: AiStatus | null = null;
+    let ai: AiStatus | null;
     try {
       ai = await api.aiStatus();
-    } catch {
-      // An older backend without the status endpoint: AI state unknown.
-      ai = null;
+    } catch (error) {
+      // Ollama answers slowly while it is generating, so a timeout keeps the
+      // last known state. A 404 means an older backend without the endpoint.
+      ai = error instanceof ApiError && error.status === 404 ? null : status.ai;
     }
     setStatus({ backend: "online", ai });
   })().finally(() => {

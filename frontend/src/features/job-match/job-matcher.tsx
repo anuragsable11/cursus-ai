@@ -1,21 +1,22 @@
 "use client";
 
-import { ArrowRight, BriefcaseBusiness, CircleCheck, SearchCheck, TriangleAlert } from "lucide-react";
+import { ArrowRight, BriefcaseBusiness, CircleCheck, Pencil, SearchCheck, TriangleAlert } from "lucide-react";
 import { useState } from "react";
 
 import { InputsSummary } from "@/components/inputs-summary";
+import { MatchVerdictBlock } from "@/components/match-verdict";
 import { JobDescriptionField } from "@/components/job-description-field";
 import { SkillsPanel } from "@/components/skills-panel";
 import { Alert } from "@/components/ui/alert";
 import { Button, ButtonLink } from "@/components/ui/button";
 import { Card, SectionLabel } from "@/components/ui/card";
 import { ChipList } from "@/components/ui/chip";
-import { coverageBand, Meter } from "@/components/ui/meter";
 import { PageHeader } from "@/components/ui/page-header";
-import { EmptyState, HeroFigure, Skeleton } from "@/components/ui/stat";
+import { EmptyState, Skeleton } from "@/components/ui/stat";
 import { api, errorMessage } from "@/lib/api";
 import { inputsChanged, matchStore, useJobDescription, useProfile, useSavedMatch } from "@/lib/app-state";
 import { LIMITS } from "@/lib/config";
+import { verdictForMatch } from "@/lib/match-verdict";
 import type { SavedMatch } from "@/lib/types";
 import { formatDateTime } from "@/lib/use-now";
 
@@ -58,6 +59,7 @@ export function JobMatcher() {
     <>
       <PageHeader
         eyebrow="Step 2 of 3"
+        step={2}
         title="Job Matcher"
         description="See how your skills cover what a job description asks for, and which skills are worth closing the gap on."
       />
@@ -110,7 +112,7 @@ export function JobMatcher() {
       ) : (
         <div className="space-y-5">
           <InputsSummary skills={skills} jobDescription={jobText} stale={stale} onEdit={() => setEditing(true)} />
-          <MatchResults saved={saved} stale={stale} />
+          <MatchResults saved={saved} stale={stale} onEdit={() => setEditing(true)} />
         </div>
       )}
     </>
@@ -118,19 +120,9 @@ export function JobMatcher() {
 }
 
 function MiniResult({ saved }: { saved: SavedMatch }) {
-  const band = coverageBand(saved.result.match_score);
   return (
     <div>
-      <div className="flex items-end justify-between gap-3">
-        <p className="font-sans text-4xl font-semibold leading-none tracking-[-0.03em] text-ink">
-          {saved.result.match_score}%
-        </p>
-        <p className="flex items-center gap-1.5 text-sm text-ink-muted">
-          {band.icon}
-          {band.label}
-        </p>
-      </div>
-      <Meter className="mt-3" value={saved.result.match_score} label="Job skill coverage" band={band} size="sm" />
+      <MatchVerdictBlock verdict={verdictForMatch(saved.result)} size="sm" />
       <p className="mt-3 text-xs text-ink-faint">
         Compare again after editing to refresh this result.
       </p>
@@ -138,10 +130,10 @@ function MiniResult({ saved }: { saved: SavedMatch }) {
   );
 }
 
-function MatchResults({ saved, stale }: { saved: SavedMatch; stale: boolean }) {
+function MatchResults({ saved, stale, onEdit }: { saved: SavedMatch; stale: boolean; onEdit: () => void }) {
   const { result } = saved;
-  const band = coverageBand(result.match_score);
-  const noSkillsFound = result.total_required === 0;
+  const verdict = verdictForMatch(result);
+  const nothingToCompare = verdict.level === "unknown";
 
   return (
     <div className="space-y-5 animate-rise">
@@ -151,27 +143,26 @@ function MatchResults({ saved, stale }: { saved: SavedMatch; stale: boolean }) {
         </Alert>
       )}
 
-      {noSkillsFound ? (
-        <Card>
-          <Alert tone="info" title="No recognized skills in this job description">
-            The detector looks for common technical skills such as Python, SQL, Docker, PyTorch, LLM and RAG. Try a
-            more detailed job description that lists the required tools and technologies.
-          </Alert>
-        </Card>
-      ) : (
-        <Card padding="lg">
-          <div className="grid gap-8 lg:grid-cols-[minmax(0,5fr)_minmax(0,7fr)]">
-            <div>
-              <SectionLabel>Skill coverage</SectionLabel>
-              <HeroFigure className="mt-3" value={`${result.match_score}%`} label={`${result.matched_count} of ${result.total_required} skills this job mentions`} />
-              <Meter className="mt-5" value={result.match_score} label="Job skill coverage" band={band} />
-              <p className="mt-3 flex items-center gap-1.5 text-sm font-medium text-ink">
-                {band.icon}
-                {band.label}
-              </p>
-              <p className="mt-1 text-xs leading-5 text-ink-faint">Compared {formatDateTime(saved.generatedAt)}</p>
-            </div>
+      <Card padding="lg" glow={verdict.showScore}>
+        <div className="grid gap-8 lg:grid-cols-[minmax(0,5fr)_minmax(0,7fr)]">
+          <div>
+            <MatchVerdictBlock verdict={verdict} />
+            <p className="mt-4 text-xs leading-5 text-ink-faint">Compared {formatDateTime(saved.generatedAt)}</p>
+          </div>
 
+          {nothingToCompare ? (
+            <div className="rounded-xl bg-surface-2/70 p-5">
+              <SectionLabel>What we look for</SectionLabel>
+              <p className="mt-2 text-sm leading-6 text-ink-muted">
+                The match is based on technical skills named in the job description, such as Python, SQL, Docker,
+                PyTorch, LLM, RAG, LangChain or AWS. Paste the full posting, including its requirements, to get a
+                real comparison.
+              </p>
+              <Button variant="secondary" size="sm" className="mt-4" onClick={onEdit} icon={<Pencil aria-hidden />}>
+                Edit job description
+              </Button>
+            </div>
+          ) : (
             <div className="space-y-6">
               <div>
                 <h3 className="mb-2.5 flex items-center gap-2 text-sm font-medium text-ink">
@@ -190,19 +181,29 @@ function MatchResults({ saved, stale }: { saved: SavedMatch; stale: boolean }) {
                 <ChipList items={result.missing_skills} tone="warning" empty="No gaps. You cover every skill this job mentions." />
               </div>
             </div>
-          </div>
+          )}
+        </div>
 
-          <div className="mt-8 flex flex-wrap items-center justify-between gap-4 border-t border-line pt-6">
-            <p className="max-w-xl text-xs leading-5 text-ink-faint">
-              Coverage counts skills from a fixed vocabulary found in both inputs. It isn&apos;t a hiring probability,
-              and a missing skill only means it isn&apos;t in your list.
-            </p>
+        <div className="mt-8 flex flex-wrap items-center justify-between gap-4 border-t border-line pt-6">
+          <p className="max-w-xl text-xs leading-5 text-ink-faint">
+            The verdict counts skills from a fixed vocabulary found in both inputs. It isn&apos;t a hiring probability,
+            and a missing skill only means it isn&apos;t in your list.
+          </p>
+          {nothingToCompare ? (
+            <Button variant="secondary" onClick={onEdit} icon={<Pencil aria-hidden />}>
+              Try another job description
+            </Button>
+          ) : (
             <ButtonLink href="/skill-gap-analysis" icon={<ArrowRight aria-hidden />}>
-              {result.missing_skills.length > 0 ? "Turn gaps into a roadmap" : "Build a roadmap"}
+              {verdict.level === "none"
+                ? `Build a roadmap for these ${result.missing_skills.length} skills`
+                : result.missing_skills.length > 0
+                  ? "Turn gaps into a roadmap"
+                  : "Build a roadmap"}
             </ButtonLink>
-          </div>
-        </Card>
-      )}
+          )}
+        </div>
+      </Card>
     </div>
   );
 }

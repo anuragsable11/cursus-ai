@@ -76,6 +76,13 @@ export type RoadmapResult = {
   interview_focus?: string[];
 };
 
+export type AuthUser = {
+  id: number;
+  name: string;
+  email: string;
+  created_at: string;
+};
+
 export type AiStatus = {
   available: boolean;
   model: string;
