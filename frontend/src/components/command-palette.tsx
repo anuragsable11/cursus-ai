@@ -171,13 +171,13 @@ function PaletteDialog() {
         aria-label="Close command menu"
         tabIndex={-1}
         onClick={closePalette}
-        className="absolute inset-0 cursor-default bg-ink/20 backdrop-blur-[2px] animate-fade"
+        className="absolute inset-0 cursor-default bg-black/30 animate-fade"
       />
       <div
         role="dialog"
         aria-modal="true"
         aria-label="Command menu"
-        className="relative w-full max-w-xl overflow-hidden rounded-2xl bg-surface shadow-pop animate-pop"
+        className="relative w-full max-w-xl overflow-hidden rounded-xl bg-surface shadow-pop animate-pop"
       >
         <div className="flex items-center gap-3 border-b border-line px-4">
           <Search className="size-4 shrink-0 text-ink-faint" aria-hidden />
@@ -194,9 +194,9 @@ function PaletteDialog() {
             }}
             onKeyDown={onKeyDown}
             placeholder="Search pages and actions…"
-            className="h-14 min-w-0 flex-1 bg-transparent text-[15px] text-ink outline-none placeholder:text-ink-faint focus-visible:outline-none"
+            className="h-14 min-w-0 flex-1 bg-transparent text-base text-ink outline-none placeholder:text-ink-faint focus-visible:outline-none"
           />
-          <kbd className="rounded-md bg-surface-2 px-1.5 py-0.5 font-mono text-[11px] text-ink-faint">Esc</kbd>
+          <kbd className="rounded border border-line bg-canvas px-1.5 font-mono text-[11px] leading-[18px] text-ink-muted">Esc</kbd>
         </div>
 
         <ul id={listId} role="listbox" aria-label="Commands" className="max-h-[52vh] overflow-y-auto p-2">
@@ -210,7 +210,7 @@ function PaletteDialog() {
             return (
               <li key={command.id} role="presentation">
                 {showGroup && (
-                  <p className="px-3 pt-3 pb-1.5 text-[11px] font-semibold uppercase tracking-[0.14em] text-ink-faint">
+                  <p className="px-3 pt-3 pb-1.5 text-xs font-medium text-ink-faint">
                     {command.group}
                   </p>
                 )}
@@ -221,22 +221,13 @@ function PaletteDialog() {
                   onMouseMove={() => setActive(position)}
                   onClick={() => run(command)}
                   className={cn(
-                    "flex cursor-pointer items-center gap-3 rounded-xl px-3 py-2.5 text-sm",
-                    selected ? "bg-brand-tint text-ink" : "text-ink-muted",
+                    "flex h-11 cursor-pointer items-center gap-3 rounded-md px-3 text-sm",
+                    selected ? "bg-surface-2 text-ink" : "text-ink-muted",
                   )}
                 >
-                  <span
-                    className={cn(
-                      "flex size-8 shrink-0 items-center justify-center rounded-lg",
-                      selected ? "bg-surface text-brand-ink shadow-card" : "bg-surface-2 text-ink-muted",
-                    )}
-                  >
-                    <Icon className="size-4" aria-hidden />
-                  </span>
-                  <span className="min-w-0 flex-1">
-                    <span className="block font-medium text-ink">{command.label}</span>
-                    {command.hint && <span className="block truncate text-xs text-ink-faint">{command.hint}</span>}
-                  </span>
+                  <Icon className={cn("size-4 shrink-0", selected ? "text-ink" : "text-ink-faint")} aria-hidden />
+                  <span className="min-w-0 flex-1 truncate text-ink">{command.label}</span>
+                  {command.hint && <span className="hidden max-w-[45%] truncate text-[13px] text-ink-faint sm:block">{command.hint}</span>}
                   {selected && <CornerDownLeft className="size-4 shrink-0 text-ink-faint" aria-hidden />}
                 </div>
               </li>
@@ -244,7 +235,7 @@ function PaletteDialog() {
           })}
         </ul>
 
-        <div className="flex items-center gap-4 border-t border-line px-4 py-2.5 text-[11px] text-ink-faint">
+        <div className="flex items-center gap-4 border-t border-line bg-canvas px-4 py-2.5 text-xs text-ink-faint">
           <span>
             <kbd className="font-mono">↑↓</kbd> to move
           </span>

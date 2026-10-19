@@ -5,7 +5,7 @@ import { RotateCcw } from "lucide-react";
 import { useId } from "react";
 
 import { SkillsEditor } from "@/components/skills-editor";
-import { TextButton } from "@/components/ui/button";
+import { TextButton, textLinkClasses } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/stat";
 import { setProfileSkills, useProfile } from "@/lib/app-state";
 import { LIMITS } from "@/lib/config";
@@ -27,7 +27,7 @@ export function SkillsPanel() {
         <label htmlFor={`${id}-input`} className="text-sm font-medium text-ink">
           Your skills
         </label>
-        <span className="text-xs tabular-nums text-ink-faint">
+        <span className="font-mono text-xs tabular-nums text-ink-faint">
           {skills.length} / {LIMITS.maxSkills}
         </span>
       </div>
@@ -38,7 +38,7 @@ export function SkillsPanel() {
         <Skeleton className="h-24" />
       )}
 
-      <div id={`${id}-hint`} className="mt-2 flex flex-wrap items-center justify-between gap-x-4 gap-y-1 text-xs leading-5 text-ink-faint">
+      <div id={`${id}-hint`} className="mt-2 flex flex-wrap items-center justify-between gap-x-4 gap-y-1 text-[13px] leading-5 text-ink-faint">
         <span>
           {!ready ? (
             "Loading your profile…"
@@ -49,7 +49,7 @@ export function SkillsPanel() {
           ) : (
             <>
               Press Enter after each skill, or{" "}
-              <Link href="/resume-analyzer" className="font-medium text-brand-ink hover:underline">
+              <Link href="/resume-analyzer" className={textLinkClasses}>
                 analyze your resume
               </Link>{" "}
               to fill them in.

@@ -3,12 +3,10 @@
 import {
   ArrowRight,
   BriefcaseBusiness,
-  Check,
+  ChevronRight,
   CircleDashed,
   FileText,
-  LoaderCircle,
   Route,
-  Sparkles,
   Trash2,
   type LucideIcon,
 } from "lucide-react";
@@ -20,23 +18,25 @@ import { Button, ButtonLink } from "@/components/ui/button";
 import { Card, SectionLabel } from "@/components/ui/card";
 import { ChipList } from "@/components/ui/chip";
 import { ProgressBar } from "@/components/ui/meter";
+import { PageBody, PageHeader } from "@/components/ui/page-header";
 import { Skeleton } from "@/components/ui/stat";
 import { clearAllData, useProfile, useSavedMatch, useSavedRoadmap } from "@/lib/app-state";
 import { firstName, useCurrentUser } from "@/lib/auth";
 import { cn } from "@/lib/cn";
 import { verdictForMatch } from "@/lib/match-verdict";
-import { trackSpotlight } from "@/lib/motion";
 import { countDone, countTopics, topicKey, useRoadmapProgress, weekProgress } from "@/lib/progress";
 import { useRoadmapJob } from "@/lib/roadmap-job";
-import { useSystemStatus } from "@/lib/system-status";
 import type { ResumeProfile, SavedMatch, SavedRoadmap } from "@/lib/types";
+
+type StepState = "todo" | "done" | "running";
+
+const quietLinkClasses = "text-[13px] font-medium text-ink-muted transition-colors hover:text-ink";
 
 export function Dashboard() {
   const { value: profile, ready } = useProfile();
   const { value: match } = useSavedMatch();
   const { value: roadmap } = useSavedRoadmap();
   const job = useRoadmapJob();
-  const system = useSystemStatus();
   const user = useCurrentUser();
   const name = firstName(user);
 
@@ -52,6 +52,42 @@ export function Dashboard() {
         ? { href: "/skill-gap-analysis", label: "Build your roadmap", hint: "Quick or AI-enhanced" }
         : { href: "/skill-gap-analysis", label: "Continue your roadmap", hint: "Pick up where you left off" };
 
+  const steps: JourneyStep[] = [
+    {
+      icon: FileText,
+      title: "Resume profile",
+      copy: "Upload a PDF to detect your skills, or type them in.",
+      state: skillCount ? "done" : "todo",
+      detail: skillCount ? `${skillCount} skills${profile?.filename ? ` · ${profile.filename}` : ""}` : "",
+      href: "/resume-analyzer",
+      cta: skillCount ? "Review" : "Start",
+    },
+    {
+      icon: BriefcaseBusiness,
+      title: "Job match",
+      copy: "See how your skills cover a job description.",
+      state: match ? "done" : "todo",
+      detail: match ? verdictForMatch(match.result).short : "",
+      href: "/job-matcher",
+      cta: match ? "View" : "Start",
+    },
+    {
+      icon: Route,
+      title: "Learning roadmap",
+      copy: "A prioritized weekly plan, optionally explained by AI.",
+      state: running ? "running" : roadmap ? "done" : "todo",
+      detail: running
+        ? job.mode === "ai"
+          ? "AI analysis in progress"
+          : "Building…"
+        : roadmap
+          ? `${roadmap.result.target_weeks}-week ${roadmap.mode === "ai" ? "AI-enhanced" : "quick"} plan`
+          : "",
+      href: "/skill-gap-analysis",
+      cta: roadmap ? "Open" : "Start",
+    },
+  ];
+
   function resetAll() {
     if (window.confirm("Clear your saved skills, job description, results and progress from this browser?")) {
       clearAllData();
@@ -59,160 +95,151 @@ export function Dashboard() {
   }
 
   return (
-    <div className="space-y-14">
-      <section className="grid items-center gap-10 lg:grid-cols-[minmax(0,1.15fr)_minmax(0,0.85fr)]">
-        <div className="animate-rise">
-          <p className="mb-5 inline-flex items-center gap-2 rounded-full bg-surface px-3 py-1 text-xs font-medium text-ink-muted shadow-card">
-            <Sparkles className="size-3.5 text-brand-ink" aria-hidden />
-            Career intelligence for aspiring AI Engineers
-          </p>
-          <h1 className="text-balance font-display text-[2.75rem] font-medium leading-[1.02] tracking-[-0.02em] text-ink sm:text-[3.6rem]">
-            {started ? (
-              <>
-                {name ? `Welcome back, ${name}.` : "Welcome back."}{" "}
-                <span className="bg-linear-to-r from-brand-ink to-[color-mix(in_oklab,var(--brand-ink)_55%,var(--accent-2))] bg-clip-text text-transparent">
-                  Keep going.
-                </span>
-              </>
-            ) : (
-              <>
-                {name ? `${name}, know exactly what to learn` : "Know exactly what to learn"}{" "}
-                <span className="bg-linear-to-r from-brand-ink to-[color-mix(in_oklab,var(--brand-ink)_55%,var(--accent-2))] bg-clip-text text-transparent">
-                  next.
-                </span>
-              </>
-            )}
-          </h1>
-          <p className="mt-5 max-w-xl text-pretty text-base leading-7 text-ink-muted sm:text-[17px] sm:leading-8">
-            Turn your resume into a skill profile, see how it covers a real job description, and follow a week-by-week
-            plan with projects worth building.
-          </p>
-          <div className="mt-8 flex flex-wrap items-center gap-4">
-            {ready ? (
-              <>
-                <ButtonLink href={next.href} size="lg" icon={<ArrowRight aria-hidden />}>
-                  {next.label}
-                </ButtonLink>
-                <span className="text-sm text-ink-faint">{next.hint}</span>
-              </>
-            ) : (
-              <Skeleton className="h-12 w-60" />
-            )}
+    <>
+      <PageHeader
+        title={
+          started
+            ? name
+              ? `Welcome back, ${name}`
+              : "Welcome back"
+            : name
+              ? `${name}, know exactly what to learn next`
+              : "Know exactly what to learn next"
+        }
+        description="Turn your resume into a skill profile, see how it covers a real job description, and follow a week-by-week plan with projects worth building."
+        actions={
+          ready ? (
+            <>
+              <span className="hidden text-[13px] text-ink-faint sm:inline">{next.hint}</span>
+              <ButtonLink href={next.href} icon={<ArrowRight aria-hidden />} className="flex-row-reverse">
+                {next.label}
+              </ButtonLink>
+            </>
+          ) : (
+            <Skeleton className="h-10 w-52" />
+          )
+        }
+      />
+
+      <PageBody>
+        <div className="grid items-start gap-6 lg:grid-cols-[minmax(0,1fr)_minmax(0,22.5rem)]">
+          <div className="space-y-6">
+            <JourneyList steps={steps} ready={ready} />
+            {ready && profile && skillCount > 0 && <SkillsCard profile={profile} />}
           </div>
+
+          <aside className="space-y-6">
+            {!ready ? (
+              <Skeleton className="h-72 rounded-xl" />
+            ) : (
+              <>
+                {roadmap ? (
+                  <FocusCard roadmap={roadmap} />
+                ) : started ? (
+                  <NextStepCard profile={profile} match={match} running={running} />
+                ) : (
+                  <HeroPreview />
+                )}
+                {match && <CoverageCard match={match} />}
+              </>
+            )}
+          </aside>
         </div>
 
-        <div className="relative">
-          {!ready ? (
-            <Skeleton className="h-[300px]" />
-          ) : roadmap ? (
-            <FocusCard roadmap={roadmap} />
-          ) : started ? (
-            <NextStepCard profile={profile} match={match} running={running} />
-          ) : (
-            <HeroPreview />
+        <div className="mt-10 flex flex-wrap items-center justify-between gap-4 border-t border-line pt-6 text-[13px] text-ink-faint">
+          <p>Your skills, results and progress are saved in this browser, per account.</p>
+          {ready && started && (
+            <Button variant="ghost" size="sm" onClick={resetAll} icon={<Trash2 aria-hidden />}>
+              Clear saved data
+            </Button>
           )}
         </div>
-      </section>
+      </PageBody>
+    </>
+  );
+}
 
-      <section aria-labelledby="journey-heading">
-        <div className="mb-5">
-          <SectionLabel>Your journey</SectionLabel>
-          <h2 id="journey-heading" className="mt-1 font-display text-2xl font-medium text-ink">
-            Three steps to a plan
+type JourneyStep = {
+  icon: LucideIcon;
+  title: string;
+  copy: string;
+  state: StepState;
+  detail: string;
+  href: string;
+  cta: string;
+};
+
+const STATUS: Record<StepState, { dot: string; label: string }> = {
+  done: { dot: "bg-good", label: "Completed" },
+  running: { dot: "bg-warning animate-pulse", label: "In progress" },
+  todo: { dot: "bg-line-hover", label: "Not started" },
+};
+
+function JourneyList({ steps, ready }: { steps: JourneyStep[]; ready: boolean }) {
+  const completed = steps.filter((step) => step.state === "done").length;
+
+  return (
+    <section
+      aria-labelledby="journey-heading"
+      className="overflow-hidden rounded-xl border border-line bg-surface shadow-card"
+    >
+      <div className="flex items-center justify-between gap-4 border-b border-line px-5 py-4">
+        <div>
+          <h2 id="journey-heading" className="text-base font-semibold tracking-[-0.01em] text-ink">
+            Your journey
           </h2>
+          <p className="mt-0.5 text-sm text-ink-muted">Three steps to a plan</p>
         </div>
-        <ol className="stagger grid gap-4 md:grid-cols-3">
-          <JourneyCard
-            index={1}
-            icon={FileText}
-            title="Resume profile"
-            copy="Upload a PDF to detect your skills, or type them in."
-            ready={ready}
-            state={skillCount ? "done" : "todo"}
-            detail={skillCount ? `${skillCount} skills${profile?.filename ? ` · ${profile.filename}` : ""}` : "Not started"}
-            href="/resume-analyzer"
-            cta={skillCount ? "Review" : "Start"}
-          />
-          <JourneyCard
-            index={2}
-            icon={BriefcaseBusiness}
-            title="Job match"
-            copy="See how your skills cover a job description."
-            ready={ready}
-            state={match ? "done" : "todo"}
-            detail={match ? verdictForMatch(match.result).short : "Not started"}
-            href="/job-matcher"
-            cta={match ? "View" : "Start"}
-          />
-          <JourneyCard
-            index={3}
-            icon={Route}
-            title="Learning roadmap"
-            copy="A prioritized weekly plan, optionally explained by AI."
-            ready={ready}
-            state={running ? "running" : roadmap ? "done" : "todo"}
-            detail={
-              running
-                ? job.mode === "ai"
-                  ? "AI analysis in progress"
-                  : "Building…"
-                : roadmap
-                  ? `${roadmap.result.target_weeks}-week ${roadmap.mode === "ai" ? "AI-enhanced" : "quick"} plan`
-                  : "Not started"
-            }
-            href="/skill-gap-analysis"
-            cta={roadmap ? "Open" : "Start"}
-          />
-        </ol>
-      </section>
-
-      {ready && match && (
-        <section aria-labelledby="snapshot-heading" className="space-y-5">
-          <div>
-            <SectionLabel>Snapshot</SectionLabel>
-            <h2 id="snapshot-heading" className="mt-1 font-display text-2xl font-medium text-ink">
-              Where you stand
-            </h2>
-          </div>
-
-          <div className="grid gap-4 lg:grid-cols-2">
-            <CoverageCard match={match} />
-            <Card
-              title="Your skills"
-              description="Shared across every analysis. Edit them on any page."
-              actions={
-                <NavLink href="/resume-analyzer" className="text-xs font-semibold text-brand-ink hover:underline">
-                  Edit
-                </NavLink>
-              }
-            >
-              <ChipList items={(profile?.skills ?? []).slice(0, 18)} tone="brand" size="sm" />
-              {(profile?.skills.length ?? 0) > 18 && (
-                <p className="mt-3 text-xs text-ink-faint">+{(profile?.skills.length ?? 0) - 18} more</p>
-              )}
-            </Card>
-          </div>
-        </section>
-      )}
-
-      <section className="flex flex-wrap items-center justify-between gap-4 border-t border-line pt-6 text-sm text-ink-faint">
-        <p>
-          {system.backend === "online"
-            ? system.ai?.available
-              ? `Backend online · AI ready with ${system.ai.model}`
-              : "Backend online · AI-enhanced roadmaps need Ollama"
-            : system.backend === "offline"
-              ? "Backend offline"
-              : "Connecting to backend…"}
-          <span className="hidden sm:inline"> · Your data stays in this browser.</span>
-        </p>
-        {ready && started && (
-          <Button variant="ghost" size="sm" onClick={resetAll} icon={<Trash2 aria-hidden />}>
-            Clear saved data
-          </Button>
+        {ready && (
+          <span className="font-mono text-xs tabular-nums text-ink-faint">
+            {completed}/{steps.length} complete
+          </span>
         )}
-      </section>
-    </div>
+      </div>
+      <ol className="divide-y divide-line">
+        {steps.map((step) => (
+          <JourneyRow key={step.href} step={step} ready={ready} />
+        ))}
+      </ol>
+    </section>
+  );
+}
+
+function JourneyRow({ step, ready }: { step: JourneyStep; ready: boolean }) {
+  const { icon: Icon, state } = step;
+  const status = STATUS[state];
+
+  return (
+    <li>
+      <NavLink
+        href={step.href}
+        className="group flex items-center gap-4 px-5 py-4 transition-colors hover:bg-canvas focus-visible:outline-offset-[-2px]"
+      >
+        <span className="flex size-9 shrink-0 items-center justify-center rounded-lg border border-line bg-surface text-ink-muted">
+          <Icon className="size-4" aria-hidden />
+        </span>
+        <span className="min-w-0 flex-1">
+          <span className="block text-sm font-medium text-ink">{step.title}</span>
+          {ready ? (
+            <span className="mt-0.5 block truncate text-[13px] text-ink-muted">{step.detail || step.copy}</span>
+          ) : (
+            <Skeleton className="mt-1.5 h-3.5 w-40" />
+          )}
+        </span>
+        {ready && (
+          <span className="flex shrink-0 items-center gap-2 text-[13px] text-ink-muted">
+            <span className={cn("size-2 rounded-full", status.dot)} aria-hidden />
+            <span className="hidden sm:inline">{status.label}</span>
+            <span className="sr-only sm:hidden">{status.label}</span>
+          </span>
+        )}
+        <span className="hidden shrink-0 items-center gap-0.5 text-[13px] font-medium text-ink-muted transition-colors group-hover:text-ink sm:flex">
+          {step.cta}
+          <ChevronRight className="size-4 transition-transform group-hover:translate-x-0.5" aria-hidden />
+        </span>
+        <ChevronRight className="size-4 shrink-0 text-ink-faint sm:hidden" aria-hidden />
+      </NavLink>
+    </li>
   );
 }
 
@@ -232,22 +259,33 @@ function FocusCard({ roadmap }: { roadmap: SavedRoadmap }) {
     : [];
 
   return (
-    <Card glow padding="lg" className="animate-rise shadow-pop [animation-delay:120ms]">
-      <div className="flex items-center justify-between">
+    <Card
+      footer={
+        <>
+          <span className="text-[13px] tabular-nums">
+            {completed} of {total} topics overall
+          </span>
+          <ButtonLink href="/skill-gap-analysis" size="sm">
+            {allDone ? "Review plan" : `Continue week ${current?.week ?? 1}`}
+          </ButtonLink>
+        </>
+      }
+    >
+      <div className="flex items-center justify-between gap-3">
         <SectionLabel>{allDone ? "Plan complete" : `Up next · Week ${current?.week ?? 1}`}</SectionLabel>
         <span className="text-xs text-ink-faint">
           {roadmap.result.target_weeks}-week {roadmap.mode === "ai" ? "AI" : "quick"} plan
         </span>
       </div>
-      <h2 className="mt-2 text-balance font-display text-2xl font-medium leading-tight text-ink">
+      <h2 className="mt-1.5 text-balance text-lg font-semibold leading-snug tracking-[-0.02em] text-ink">
         {allDone ? "Every topic is done. Time to build." : (current?.title.replace(/^Week \d+:\s*/, "") ?? "Your plan")}
       </h2>
 
       {progress && progress.total > 0 && !allDone && (
         <div className="mt-5">
-          <div className="flex items-baseline justify-between text-xs">
+          <div className="flex items-baseline justify-between text-[13px]">
             <span className="text-ink-muted">This week</span>
-            <span className="text-ink-faint">
+            <span className="tabular-nums text-ink-faint">
               {progress.completed} of {progress.total} topics
             </span>
           </div>
@@ -256,10 +294,10 @@ function FocusCard({ roadmap }: { roadmap: SavedRoadmap }) {
       )}
 
       {upcoming.length > 0 && (
-        <ul className="mt-5 space-y-2.5">
+        <ul className="mt-5 space-y-3">
           {upcoming.map(({ skill, topic }) => (
             <li key={`${skill}-${topic}`} className="flex items-start gap-2.5 text-sm">
-              <CircleDashed className="mt-0.5 size-4 shrink-0 text-brand-ink" aria-hidden />
+              <CircleDashed className="mt-0.5 size-4 shrink-0 text-ink-faint" aria-hidden />
               <span className="min-w-0">
                 <span className="text-ink">{topic}</span>
                 <span className="block text-xs text-ink-faint">{skill}</span>
@@ -268,15 +306,6 @@ function FocusCard({ roadmap }: { roadmap: SavedRoadmap }) {
           ))}
         </ul>
       )}
-
-      <div className="mt-6 flex items-center justify-between gap-3 border-t border-line pt-5">
-        <span className="text-xs text-ink-faint">
-          {completed} of {total} topics overall
-        </span>
-        <ButtonLink href="/skill-gap-analysis" size="sm" icon={<ArrowRight aria-hidden />}>
-          {allDone ? "Review plan" : `Continue week ${current?.week ?? 1}`}
-        </ButtonLink>
-      </div>
     </Card>
   );
 }
@@ -308,20 +337,23 @@ function NextStepCard({
       };
 
   return (
-    <Card glow padding="lg" className="animate-rise shadow-pop [animation-delay:120ms]">
-      <SectionLabel>{step.label}</SectionLabel>
-      <h2 className="mt-2 text-balance font-display text-2xl font-medium leading-tight text-ink">{step.title}</h2>
-      <p className="mt-2 text-sm leading-6 text-ink-muted">{step.copy}</p>
+    <Card
+      footer={
+        <>
+          <span className="text-[13px]">{step.label}</span>
+          <ButtonLink href={step.href} size="sm">
+            {step.cta}
+          </ButtonLink>
+        </>
+      }
+    >
+      <h2 className="text-balance text-lg font-semibold leading-snug tracking-[-0.02em] text-ink">{step.title}</h2>
+      <p className="mt-1.5 text-sm leading-6 text-ink-muted">{step.copy}</p>
       {skills.length > 0 && (
         <div className="mt-5">
           <ChipList items={skills.slice(0, 8)} tone="brand" size="sm" />
         </div>
       )}
-      <div className="mt-6 border-t border-line pt-5">
-        <ButtonLink href={step.href} size="sm" icon={<ArrowRight aria-hidden />}>
-          {step.cta}
-        </ButtonLink>
-      </div>
     </Card>
   );
 }
@@ -332,7 +364,7 @@ function CoverageCard({ match }: { match: SavedMatch }) {
       title="Job match"
       description="Your last comparison"
       actions={
-        <NavLink href="/job-matcher" className="text-xs font-semibold text-brand-ink hover:underline">
+        <NavLink href="/job-matcher" className={quietLinkClasses}>
           Details
         </NavLink>
       }
@@ -348,70 +380,20 @@ function CoverageCard({ match }: { match: SavedMatch }) {
   );
 }
 
-function JourneyCard({
-  index,
-  icon: Icon,
-  title,
-  copy,
-  ready,
-  state,
-  detail,
-  href,
-  cta,
-}: {
-  index: number;
-  icon: LucideIcon;
-  title: string;
-  copy: string;
-  ready: boolean;
-  state: "todo" | "done" | "running";
-  detail: string;
-  href: string;
-  cta: string;
-}) {
+function SkillsCard({ profile }: { profile: ResumeProfile }) {
+  const extra = profile.skills.length - 18;
   return (
-    <li>
-      <NavLink
-        href={href}
-        onPointerMove={trackSpotlight}
-        className="spotlight group flex h-full flex-col rounded-2xl bg-surface p-5 shadow-card transition-[transform,box-shadow] duration-300 hover:-translate-y-1 hover:shadow-raised"
-      >
-        <div className="flex items-center justify-between">
-          <span className="flex size-10 items-center justify-center rounded-xl bg-brand-tint text-brand-ink transition-transform duration-300 group-hover:scale-105">
-            <Icon className="size-5" aria-hidden />
-          </span>
-          <span
-            className={cn(
-              "flex size-7 items-center justify-center rounded-full text-xs font-semibold",
-              state === "done" && "bg-good text-white shadow-[0_0_0_4px_var(--good-tint)]",
-              state === "running" && "bg-brand-tint text-brand-ink",
-              state === "todo" && "bg-surface-2 text-ink-muted",
-            )}
-            aria-hidden
-          >
-            {state === "done" ? (
-              <Check className="size-4" strokeWidth={3} />
-            ) : state === "running" ? (
-              <LoaderCircle className="size-4 animate-spin" />
-            ) : (
-              index
-            )}
-          </span>
-        </div>
-        <h3 className="mt-5 text-base font-semibold text-ink">{title}</h3>
-        <p className="mt-1 flex-1 text-sm leading-6 text-ink-muted">{copy}</p>
-        <div className="mt-5 flex items-center justify-between gap-3 border-t border-line pt-4 text-sm">
-          {ready ? (
-            <span className={cn("truncate", state === "todo" ? "text-ink-faint" : "text-ink")}>{detail}</span>
-          ) : (
-            <Skeleton className="h-4 w-28" />
-          )}
-          <span className="inline-flex shrink-0 items-center gap-1 font-medium text-brand-ink">
-            {cta}
-            <ArrowRight className="size-4 transition-transform duration-300 group-hover:translate-x-1" aria-hidden />
-          </span>
-        </div>
-      </NavLink>
-    </li>
+    <Card
+      title="Your skills"
+      description="Shared across every analysis. Edit them on any page."
+      actions={
+        <NavLink href="/resume-analyzer" className={quietLinkClasses}>
+          Edit
+        </NavLink>
+      }
+    >
+      <ChipList items={profile.skills.slice(0, 18)} tone="brand" size="sm" />
+      {extra > 0 && <p className="mt-3 text-[13px] text-ink-faint">+{extra} more</p>}
+    </Card>
   );
 }

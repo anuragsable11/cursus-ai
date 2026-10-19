@@ -2,11 +2,13 @@
 
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { ArrowRight, Eye, EyeOff } from "lucide-react";
-import { useId, useState, type FormEvent } from "react";
+import { Eye, EyeOff } from "lucide-react";
+import { useId, useState, type FormEvent, type ReactNode } from "react";
 
 import { Alert } from "@/components/ui/alert";
-import { Button } from "@/components/ui/button";
+import { Button, textLinkClasses } from "@/components/ui/button";
+import { CheckboxBox } from "@/components/ui/checkbox";
+import { fieldClasses } from "@/components/ui/field";
 import { errorMessage } from "@/lib/api";
 import { postAuthDestination, signIn, signUp } from "@/lib/auth";
 import { cn } from "@/lib/cn";
@@ -14,6 +16,8 @@ import { cn } from "@/lib/cn";
 type Mode = "login" | "signup";
 
 const MIN_PASSWORD = 8;
+
+const inputClasses = cn(fieldClasses, "h-10 w-full px-3");
 
 export function AuthForm({ mode }: { mode: Mode }) {
   const router = useRouter();
@@ -56,16 +60,16 @@ export function AuthForm({ mode }: { mode: Mode }) {
 
   return (
     <div className="animate-rise">
-      <h1 className="font-display text-[2rem] font-medium leading-tight tracking-[-0.015em] text-ink">
-        {isSignup ? "Create your account" : "Welcome back"}
+      <h1 className="text-center text-[1.75rem] font-semibold leading-tight tracking-[-0.04em] text-ink">
+        {isSignup ? "Create your account" : "Sign in to Cursus AI"}
       </h1>
-      <p className="mt-2 text-sm leading-6 text-ink-muted">
+      <p className="mt-2 text-center text-sm leading-6 text-ink-muted">
         {isSignup
           ? "Your profile, results and roadmap progress are saved to your account."
-          : "Sign in to pick up your roadmap where you left off."}
+          : "Pick up your roadmap where you left off."}
       </p>
 
-      <form onSubmit={submit} noValidate className="mt-8 space-y-5">
+      <form onSubmit={submit} noValidate className="mt-8 space-y-4">
         {isSignup && (
           <Field id={`${id}-name`} label="Name">
             <input
@@ -76,7 +80,7 @@ export function AuthForm({ mode }: { mode: Mode }) {
               value={name}
               onChange={(event) => setName(event.target.value)}
               maxLength={80}
-              className={inputClass}
+              className={inputClasses}
               placeholder="Ada Lovelace"
             />
           </Field>
@@ -93,7 +97,7 @@ export function AuthForm({ mode }: { mode: Mode }) {
             value={email}
             onChange={(event) => setEmail(event.target.value)}
             maxLength={254}
-            className={inputClass}
+            className={inputClasses}
             placeholder="you@example.com"
           />
         </Field>
@@ -112,7 +116,7 @@ export function AuthForm({ mode }: { mode: Mode }) {
               value={password}
               onChange={(event) => setPassword(event.target.value)}
               maxLength={128}
-              className={cn(inputClass, "pr-11")}
+              className={cn(inputClasses, "pr-10")}
               placeholder={isSignup ? "Choose a strong password" : "Your password"}
             />
             <button
@@ -120,7 +124,7 @@ export function AuthForm({ mode }: { mode: Mode }) {
               onClick={() => setShowPassword((value) => !value)}
               aria-label={showPassword ? "Hide password" : "Show password"}
               aria-pressed={showPassword}
-              className="absolute top-1/2 right-2 flex size-8 -translate-y-1/2 items-center justify-center rounded-lg text-ink-faint hover:bg-surface-3 hover:text-ink"
+              className="absolute top-1/2 right-1 flex size-8 -translate-y-1/2 items-center justify-center rounded-md text-ink-faint transition-colors hover:bg-surface-2 hover:text-ink"
             >
               {showPassword ? <EyeOff className="size-4" aria-hidden /> : <Eye className="size-4" aria-hidden />}
             </button>
@@ -128,13 +132,8 @@ export function AuthForm({ mode }: { mode: Mode }) {
         </Field>
 
         {!isSignup && (
-          <label className="flex cursor-pointer items-center gap-2.5 text-sm text-ink-muted">
-            <input
-              type="checkbox"
-              checked={remember}
-              onChange={(event) => setRemember(event.target.checked)}
-              className="size-4 cursor-pointer rounded accent-brand"
-            />
+          <label className="flex cursor-pointer items-center gap-2.5 pt-1 text-sm text-ink-muted">
+            <CheckboxBox checked={remember} onChange={(event) => setRemember(event.target.checked)} />
             Keep me signed in for 30 days
           </label>
         )}
@@ -145,25 +144,20 @@ export function AuthForm({ mode }: { mode: Mode }) {
           </Alert>
         )}
 
-        <Button
-          type="submit"
-          size="lg"
-          className="w-full"
-          loading={submitting}
-          disabled={problem !== null}
-          icon={<ArrowRight aria-hidden />}
-        >
-          {submitting ? (isSignup ? "Creating your account…" : "Signing in…") : isSignup ? "Create account" : "Sign in"}
-        </Button>
-        {problem && (email || password || name) && (
-          <p className="text-center text-xs text-ink-faint" aria-live="polite">
-            {problem}
-          </p>
-        )}
+        <div className="pt-2">
+          <Button type="submit" size="lg" className="w-full" loading={submitting} disabled={problem !== null}>
+            {submitting ? (isSignup ? "Creating your account…" : "Signing in…") : isSignup ? "Create account" : "Sign in"}
+          </Button>
+          {problem && (email || password || name) && (
+            <p className="mt-3 text-center text-[13px] text-ink-faint" aria-live="polite">
+              {problem}
+            </p>
+          )}
+        </div>
       </form>
 
-      <p className="mt-8 text-center text-sm text-ink-muted">
-        {isSignup ? "Already have an account? " : "New here? "}
+      <p className="mt-8 border-t border-line pt-6 text-center text-sm text-ink-muted">
+        {isSignup ? "Already have an account? " : "Don't have an account? "}
         <Link
           href={isSignup ? "/login" : "/signup"}
           onClick={(event) => {
@@ -171,26 +165,23 @@ export function AuthForm({ mode }: { mode: Mode }) {
             event.preventDefault();
             router.push(`${isSignup ? "/login" : "/signup"}${window.location.search}`);
           }}
-          className="font-semibold text-brand-ink hover:underline"
+          className={textLinkClasses}
         >
-          {isSignup ? "Sign in" : "Create an account"}
+          {isSignup ? "Sign in" : "Sign up"}
         </Link>
       </p>
     </div>
   );
 }
 
-const inputClass =
-  "h-11 w-full rounded-xl bg-surface-2/70 px-3.5 text-sm text-ink outline-none transition-shadow placeholder:text-ink-faint focus:shadow-[0_0_0_2px_var(--brand)]";
-
-function Field({ id, label, hint, children }: { id: string; label: string; hint?: string; children: React.ReactNode }) {
+function Field({ id, label, hint, children }: { id: string; label: string; hint?: string; children: ReactNode }) {
   return (
     <div>
-      <label htmlFor={id} className="mb-1.5 block text-sm font-medium text-ink">
+      <label htmlFor={id} className="mb-1.5 block text-[13px] font-medium text-ink-muted">
         {label}
       </label>
       {children}
-      {hint && <p className="mt-1.5 text-xs text-ink-faint">{hint}</p>}
+      {hint && <p className="mt-1.5 text-[13px] text-ink-faint">{hint}</p>}
     </div>
   );
 }

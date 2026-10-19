@@ -9,11 +9,11 @@ export type ChipTone = "neutral" | "brand" | "good" | "warning" | "serious" | "c
 // meaning never relies on color alone.
 const tones: Record<ChipTone, { box: string; dot?: string }> = {
   neutral: { box: "bg-surface-2 text-ink-muted" },
-  brand: { box: "bg-brand-tint text-brand-ink" },
-  good: { box: "bg-good-tint text-ink", dot: "bg-good" },
-  warning: { box: "bg-warning-tint text-ink", dot: "bg-warning" },
-  serious: { box: "bg-serious-tint text-ink", dot: "bg-serious" },
-  critical: { box: "bg-critical-tint text-ink", dot: "bg-critical" },
+  brand: { box: "bg-surface text-ink shadow-field" },
+  good: { box: "bg-surface text-ink shadow-field", dot: "bg-good" },
+  warning: { box: "bg-surface text-ink shadow-field", dot: "bg-warning" },
+  serious: { box: "bg-surface text-ink shadow-field", dot: "bg-serious" },
+  critical: { box: "bg-surface text-ink shadow-field", dot: "bg-critical" },
 };
 
 type ChipProps = {
@@ -31,8 +31,9 @@ export function Chip({ tone = "neutral", children, leading, onRemove, removeLabe
   return (
     <span
       className={cn(
-        "inline-flex max-w-full items-center gap-1.5 rounded-lg font-medium",
-        size === "md" ? "h-7 px-2.5 text-xs" : "h-6 px-2 text-[11px]",
+        "inline-flex max-w-full items-center gap-1.5 rounded-full font-medium",
+        size === "md" ? "h-7 px-2.5 text-[13px]" : "h-6 px-2 text-xs",
+        onRemove && "pr-1",
         style.box,
         className,
       )}
@@ -45,7 +46,7 @@ export function Chip({ tone = "neutral", children, leading, onRemove, removeLabe
           type="button"
           onClick={onRemove}
           aria-label={removeLabel ?? "Remove"}
-          className="-mr-1 rounded p-0.5 opacity-60 transition-opacity hover:bg-ink/10 hover:opacity-100"
+          className="flex size-5 items-center justify-center rounded-full text-ink-faint transition-colors hover:bg-surface-2 hover:text-ink"
         >
           <X className="size-3" aria-hidden />
         </button>
@@ -78,7 +79,7 @@ export function ChipList({
           <Chip
             tone={tone}
             size={size}
-            leading={numbered ? <span className="tabular-nums opacity-60">{index + 1}</span> : undefined}
+            leading={numbered ? <span className="font-mono text-[11px] tabular-nums text-ink-faint">{index + 1}</span> : undefined}
           >
             {item}
           </Chip>

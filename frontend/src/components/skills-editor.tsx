@@ -4,6 +4,8 @@ import { Plus } from "lucide-react";
 import { useState, type ClipboardEvent, type KeyboardEvent } from "react";
 
 import { Chip } from "@/components/ui/chip";
+import { fieldClasses } from "@/components/ui/field";
+import { cn } from "@/lib/cn";
 import { LIMITS } from "@/lib/config";
 import { normalizeSkills, parseSkillInput } from "@/lib/skills";
 
@@ -43,7 +45,7 @@ export function SkillsEditor({ id, skills, onChange, describedBy }: SkillsEditor
   }
 
   return (
-    <div className="rounded-xl bg-surface-2/70 p-1.5 transition-shadow focus-within:shadow-[0_0_0_2px_var(--brand)]">
+    <div className={cn(fieldClasses, "p-1")}>
       {skills.length > 0 && (
         <ul className="flex flex-wrap gap-1.5 p-1" aria-label="Your skills">
           {skills.map((skill) => (
@@ -77,14 +79,14 @@ export function SkillsEditor({ id, skills, onChange, describedBy }: SkillsEditor
                 : "Type a skill and press Enter, e.g. Python, SQL, Docker"
           }
           aria-describedby={describedBy}
-          className="h-9 min-w-0 flex-1 bg-transparent px-2 text-sm text-ink outline-none placeholder:text-ink-faint"
+          className="h-8 min-w-0 flex-1 bg-transparent px-2 text-sm text-ink outline-none placeholder:text-ink-faint focus-visible:outline-none"
         />
         {draft.trim() && (
           <button
             type="button"
             onMouseDown={(event) => event.preventDefault()}
             onClick={() => add(draft)}
-            className="mr-1 inline-flex h-7 items-center gap-1 rounded-lg bg-surface px-2.5 text-xs font-medium text-ink shadow-card hover:bg-surface-3"
+            className="mr-0.5 inline-flex h-7 items-center gap-1 rounded-md bg-surface-2 px-2.5 text-xs font-medium text-ink transition-colors hover:bg-surface-3"
           >
             <Plus className="size-3.5" aria-hidden />
             Add

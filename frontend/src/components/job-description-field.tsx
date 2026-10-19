@@ -4,7 +4,9 @@ import { ClipboardPaste, Eraser } from "lucide-react";
 import { useId } from "react";
 
 import { TextButton } from "@/components/ui/button";
+import { fieldClasses } from "@/components/ui/field";
 import { Skeleton } from "@/components/ui/stat";
+import { cn } from "@/lib/cn";
 import { jobDescriptionStore, useJobDescription } from "@/lib/app-state";
 import { LIMITS } from "@/lib/config";
 import { SAMPLE_JOB_DESCRIPTION } from "@/lib/sample-job";
@@ -48,19 +50,19 @@ export function JobDescriptionField({ rows = 10 }: { rows?: number }) {
           maxLength={LIMITS.maxJobDescription}
           aria-describedby={`${id}-hint`}
           aria-invalid={tooShort || undefined}
-          className="w-full resize-y rounded-xl bg-surface-2/70 p-3.5 text-sm leading-6 text-ink outline-none transition-shadow placeholder:text-ink-faint focus:shadow-[0_0_0_2px_var(--brand)]"
+          className={cn(fieldClasses, "block w-full resize-y px-3 py-2.5 leading-6")}
         />
       ) : (
         <Skeleton className="h-56" />
       )}
 
-      <div id={`${id}-hint`} className="mt-2 flex justify-between gap-3 text-xs leading-5 text-ink-faint">
+      <div id={`${id}-hint`} className="mt-2 flex justify-between gap-3 text-[13px] leading-5 text-ink-faint">
         <span className={tooShort ? "text-ink" : undefined}>
           {tooShort
             ? `Add at least ${LIMITS.minJobDescription - length} more characters.`
             : "Saved in this browser and shared across pages."}
         </span>
-        <span className="tabular-nums">
+        <span className="font-mono text-xs tabular-nums">
           {text.length.toLocaleString()} / {LIMITS.maxJobDescription.toLocaleString()}
         </span>
       </div>

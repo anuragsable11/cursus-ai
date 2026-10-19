@@ -15,12 +15,12 @@ const ICONS: Record<MatchLevel, typeof CircleCheck> = {
   unknown: CircleHelp,
 };
 
-const TONES: Record<VerdictTone, { bubble: string; fill: string; track: string }> = {
-  good: { bubble: "bg-good-tint text-good", fill: "bg-good", track: "bg-good-tint" },
-  warning: { bubble: "bg-warning-tint text-warning", fill: "bg-warning", track: "bg-warning-tint" },
-  serious: { bubble: "bg-serious-tint text-serious", fill: "bg-serious", track: "bg-serious-tint" },
-  critical: { bubble: "bg-critical-tint text-critical", fill: "bg-critical", track: "bg-critical-tint" },
-  neutral: { bubble: "bg-surface-2 text-ink-muted", fill: "bg-ink-faint", track: "bg-surface-2" },
+const TONES: Record<VerdictTone, { icon: string; fill: string; track: string }> = {
+  good: { icon: "text-good", fill: "bg-good", track: "bg-good-tint" },
+  warning: { icon: "text-warning", fill: "bg-warning", track: "bg-warning-tint" },
+  serious: { icon: "text-serious", fill: "bg-serious", track: "bg-serious-tint" },
+  critical: { icon: "text-critical", fill: "bg-critical", track: "bg-critical-tint" },
+  neutral: { icon: "text-ink-faint", fill: "bg-ink-faint", track: "bg-surface-3" },
 };
 
 /**
@@ -43,27 +43,18 @@ export function MatchVerdictBlock({
   return (
     <div>
       {large && <SectionLabel className="mb-3">{label}</SectionLabel>}
-      <div className="flex items-center gap-3">
-        <span className={cn("flex shrink-0 items-center justify-center rounded-xl", tone.bubble, large ? "size-11" : "size-9")}>
-          <Icon className={large ? "size-5" : "size-4"} aria-hidden />
-        </span>
-        <h3
-          className={cn(
-            "font-display font-medium leading-tight tracking-[-0.01em] text-ink",
-            large ? "text-[1.9rem]" : "text-xl",
-          )}
-        >
+      <div className="flex items-center gap-2.5">
+        <Icon className={cn("shrink-0", tone.icon, large ? "size-6" : "size-5")} aria-hidden />
+        <h3 className={cn("font-semibold leading-tight tracking-[-0.03em] text-ink", large ? "text-2xl" : "text-lg")}>
           {verdict.title}
         </h3>
       </div>
-      <p className={cn("text-pretty text-ink-muted", large ? "mt-3 text-sm leading-6" : "mt-2 text-sm leading-6")}>
-        {verdict.description}
-      </p>
+      <p className="mt-2 text-pretty text-sm leading-6 text-ink-muted">{verdict.description}</p>
 
       {verdict.showScore && (
         <div className={large ? "mt-6" : "mt-4"}>
           <div className="flex items-baseline gap-2">
-            <span className={cn("font-sans font-semibold tracking-[-0.03em] text-ink", large ? "text-4xl" : "text-2xl")}>
+            <span className={cn("font-semibold tracking-[-0.04em] text-ink", large ? "text-5xl" : "text-3xl")}>
               <CountUp value={verdict.score} suffix="%" />
             </span>
             <span className="text-sm text-ink-muted">skill coverage</span>

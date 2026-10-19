@@ -6,32 +6,25 @@ type StatProps = {
   label: string;
   value: ReactNode;
   hint?: ReactNode;
-  icon?: ReactNode;
   className?: string;
 };
 
-/** A stat tile. The value uses proportional figures on purpose. */
-export function Stat({ label, value, hint, icon, className }: StatProps) {
+/** One figure in a StatGroup. The value uses proportional figures on purpose. */
+export function Stat({ label, value, hint, className }: StatProps) {
   return (
-    <div className={cn("rounded-xl bg-surface-2/70 p-4", className)}>
-      <div className="flex items-center justify-between gap-2">
-        <p className="text-xs font-medium text-ink-muted">{label}</p>
-        {icon && <span className="text-ink-faint [&_svg]:size-4">{icon}</span>}
-      </div>
-      <p className="mt-2 text-2xl font-semibold tracking-tight text-ink">{value}</p>
-      {hint && <p className="mt-1 text-xs text-ink-faint">{hint}</p>}
+    <div className={cn("min-w-0 px-4 py-3", className)}>
+      <p className="truncate text-[13px] text-ink-muted">{label}</p>
+      <p className="mt-1 text-2xl font-semibold tracking-[-0.03em] text-ink">{value}</p>
+      {hint && <p className="mt-0.5 text-xs text-ink-faint">{hint}</p>}
     </div>
   );
 }
 
-/** The one number a view leads with. Sans-serif, large, proportional figures. */
-export function HeroFigure({ value, label, className }: { value: ReactNode; label: ReactNode; className?: string }) {
+/** A row of stats in one outlined strip, divided by hairlines. */
+export function StatGroup({ children, className }: { children: ReactNode; className?: string }) {
   return (
-    <div className={className}>
-      <p className="font-sans text-[3.25rem] font-semibold leading-none tracking-[-0.03em] text-ink sm:text-[3.75rem]">
-        {value}
-      </p>
-      <p className="mt-2 text-sm text-ink-muted">{label}</p>
+    <div className={cn("grid auto-cols-fr grid-flow-col divide-x divide-line rounded-lg border border-line", className)}>
+      {children}
     </div>
   );
 }
@@ -47,22 +40,19 @@ type EmptyStateProps = {
 export function EmptyState({ icon, title, description, action, className }: EmptyStateProps) {
   return (
     <div className={cn("flex flex-col items-center justify-center px-4 py-14 text-center", className)}>
-      <span className="relative flex size-24 items-center justify-center" aria-hidden>
-        <span className="absolute inset-0 rounded-full bg-brand-tint/50" />
-        <span className="absolute inset-3 rounded-full bg-brand-tint" />
-        <span className="absolute top-2 right-3 size-2 rounded-full bg-accent-2/70" />
-        <span className="absolute bottom-4 left-2 size-1.5 rounded-full bg-brand/60" />
-        <span className="relative flex size-12 items-center justify-center rounded-2xl bg-surface text-brand-ink shadow-raised [&_svg]:size-5">
-          {icon}
-        </span>
+      <span
+        className="flex size-10 items-center justify-center rounded-lg border border-line bg-surface text-ink-muted shadow-card [&_svg]:size-5"
+        aria-hidden
+      >
+        {icon}
       </span>
-      <h3 className="mt-5 font-display text-xl font-medium text-ink">{title}</h3>
-      <p className="mt-2 max-w-sm text-sm leading-6 text-ink-muted">{description}</p>
+      <h3 className="mt-4 text-base font-semibold tracking-[-0.01em] text-ink">{title}</h3>
+      <p className="mt-1.5 max-w-sm text-sm leading-6 text-ink-muted">{description}</p>
       {action && <div className="mt-6">{action}</div>}
     </div>
   );
 }
 
 export function Skeleton({ className }: { className?: string }) {
-  return <div className={cn("shimmer rounded-xl", className)} aria-hidden />;
+  return <div className={cn("shimmer rounded-lg", className)} aria-hidden />;
 }

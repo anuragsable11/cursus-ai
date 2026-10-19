@@ -9,21 +9,21 @@ type Variant = "primary" | "secondary" | "ghost" | "danger";
 type Size = "sm" | "md" | "lg";
 
 const base =
-  "inline-flex shrink-0 items-center justify-center gap-2 rounded-xl font-medium whitespace-nowrap " +
-  "transition-[background-color,color,box-shadow,transform] duration-150 active:scale-[0.98] " +
+  "inline-flex shrink-0 items-center justify-center gap-2 rounded-md font-medium whitespace-nowrap " +
+  "transition-[background-color,color,box-shadow] duration-150 " +
   "disabled:pointer-events-none disabled:opacity-50";
 
 const variants: Record<Variant, string> = {
-  primary: "btn-primary text-on-brand",
-  secondary: "bg-surface text-ink shadow-card hover:shadow-raised hover:bg-surface",
+  primary: "bg-brand text-on-brand hover:bg-brand-hover",
+  secondary: "bg-surface text-ink shadow-field hover:bg-surface-2",
   ghost: "text-ink-muted hover:bg-surface-2 hover:text-ink",
-  danger: "bg-critical-tint text-critical hover:bg-critical/20",
+  danger: "bg-critical text-white hover:bg-critical/90",
 };
 
 const sizes: Record<Size, string> = {
-  sm: "h-8 px-3 text-xs [&_svg]:size-3.5",
+  sm: "h-8 px-3 text-[13px] [&_svg]:size-3.5",
   md: "h-10 px-4 text-sm [&_svg]:size-4",
-  lg: "h-12 px-5 text-sm [&_svg]:size-4",
+  lg: "h-12 px-5 text-[15px] [&_svg]:size-4",
 };
 
 export function buttonClasses(variant: Variant = "primary", size: Size = "md", className?: string) {
@@ -77,13 +77,13 @@ export function ButtonLink({ variant = "primary", size = "md", icon, className, 
   );
 }
 
-/** A quiet inline text action, for secondary links inside copy. */
+/** A quiet inline action, for secondary controls next to labels. */
 export function TextButton({ className, children, type = "button", ...props }: ComponentProps<"button">) {
   return (
     <button
       type={type}
       className={cn(
-        "inline-flex items-center gap-1.5 rounded-md text-xs font-medium text-brand-ink hover:underline disabled:opacity-50 [&_svg]:size-3.5",
+        "inline-flex items-center gap-1.5 rounded-sm text-[13px] font-medium text-ink-muted transition-colors hover:text-ink disabled:opacity-50 [&_svg]:size-3.5",
         className,
       )}
       {...props}
@@ -92,3 +92,6 @@ export function TextButton({ className, children, type = "button", ...props }: C
     </button>
   );
 }
+
+/** Inline link styling for links inside running text. */
+export const textLinkClasses = "font-medium text-accent-ink hover:underline underline-offset-4";

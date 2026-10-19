@@ -21,25 +21,25 @@ function jobTitle(text: string): string {
 /** Collapsed view of the inputs behind a result, with a way back to edit them. */
 export function InputsSummary({ skills, jobDescription, extra, stale, onEdit }: InputsSummaryProps) {
   return (
-    <div className="print-hidden flex flex-wrap items-center gap-x-5 gap-y-3 rounded-2xl bg-surface-2/60 px-4 py-3 sm:px-5">
-      <dl className="flex min-w-0 flex-1 flex-wrap gap-x-6 gap-y-2 text-sm">
-        <div className="min-w-0">
-          <dt className="text-[11px] font-medium uppercase tracking-wider text-ink-faint">Skills</dt>
-          <dd className="truncate text-ink">
-            {skills.length === 0
+    <div className="print-hidden flex flex-wrap items-center gap-x-6 gap-y-3 rounded-xl border border-line bg-surface px-4 py-3 shadow-card sm:px-5">
+      <dl className="flex min-w-0 flex-1 flex-wrap gap-x-8 gap-y-2 text-sm">
+        <SummaryItem
+          label="Skills"
+          value={
+            skills.length === 0
               ? "None listed"
-              : `${skills.slice(0, 4).join(", ")}${skills.length > 4 ? ` +${skills.length - 4} more` : ""}`}
-          </dd>
-        </div>
+              : `${skills.slice(0, 4).join(", ")}${skills.length > 4 ? ` +${skills.length - 4} more` : ""}`
+          }
+        />
         <div className="min-w-0 max-w-full">
-          <dt className="text-[11px] font-medium uppercase tracking-wider text-ink-faint">Job</dt>
+          <dt className="text-xs text-ink-faint">Job</dt>
           <dd className="truncate text-ink">{jobTitle(jobDescription)}</dd>
         </div>
         {extra}
       </dl>
       <div className="flex w-full items-center justify-between gap-3 sm:w-auto sm:justify-end">
         {stale && (
-          <span className="inline-flex items-center gap-1.5 text-xs text-ink-muted">
+          <span className="inline-flex items-center gap-1.5 text-[13px] text-ink-muted">
             <TriangleAlert className="size-3.5 text-warning" aria-hidden />
             Inputs changed
           </span>
@@ -55,7 +55,7 @@ export function InputsSummary({ skills, jobDescription, extra, stale, onEdit }: 
 export function SummaryItem({ label, value }: { label: string; value: ReactNode }) {
   return (
     <div className="min-w-0">
-      <dt className="text-[11px] font-medium uppercase tracking-wider text-ink-faint">{label}</dt>
+      <dt className="text-xs text-ink-faint">{label}</dt>
       <dd className="truncate text-ink">{value}</dd>
     </div>
   );

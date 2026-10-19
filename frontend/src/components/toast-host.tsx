@@ -8,7 +8,7 @@ import { dismissToast, useToasts } from "@/lib/toasts";
 const icons = {
   success: <CircleCheck className="size-4 text-good" aria-hidden />,
   error: <CircleAlert className="size-4 text-critical" aria-hidden />,
-  info: <Info className="size-4 text-brand-ink" aria-hidden />,
+  info: <Info className="size-4 text-accent" aria-hidden />,
 };
 
 export function ToastHost() {
@@ -18,7 +18,7 @@ export function ToastHost() {
   return (
     <div
       aria-live="polite"
-      className="print-hidden pointer-events-none fixed inset-x-4 bottom-[calc(4.5rem+env(safe-area-inset-bottom))] z-50 flex flex-col items-end gap-2 sm:inset-x-auto sm:right-6 sm:bottom-6"
+      className="print-hidden pointer-events-none fixed inset-x-4 bottom-[calc(1rem+env(safe-area-inset-bottom))] z-50 flex flex-col items-end gap-2 sm:inset-x-auto sm:right-6 sm:bottom-6"
     >
       {toasts.map((toast) => (
         <div
@@ -34,7 +34,7 @@ export function ToastHost() {
               <NavLink
                 href={toast.href}
                 onClick={() => dismissToast(toast.id)}
-                className="mt-2 inline-block text-xs font-semibold text-brand-ink hover:underline"
+                className="mt-2 inline-block text-[13px] font-medium text-ink underline underline-offset-4 hover:text-ink-muted"
               >
                 {toast.actionLabel ?? "Open"}
               </NavLink>
@@ -44,7 +44,7 @@ export function ToastHost() {
             type="button"
             onClick={() => dismissToast(toast.id)}
             aria-label="Dismiss notification"
-            className="-m-1 h-fit rounded-md p-1 text-ink-faint hover:bg-surface-2 hover:text-ink"
+            className="-m-1 h-fit rounded-md p-1 text-ink-faint transition-colors hover:bg-surface-2 hover:text-ink"
           >
             <X className="size-4" aria-hidden />
           </button>

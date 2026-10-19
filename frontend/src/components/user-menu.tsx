@@ -1,16 +1,22 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { ChevronDown, LogOut } from "lucide-react";
+import { LayoutDashboard, LogOut, Search } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 
+import { NavLink } from "@/components/nav-link";
+import { ThemeToggle } from "@/components/theme-toggle";
 import { initials, signOut, useCurrentUser } from "@/lib/auth";
-import { cn } from "@/lib/cn";
+import { openPalette, useIsMac } from "@/lib/command-palette";
 
-/** Avatar with the account's name and a sign-out action. */
-export function UserMenu({ compact = false }: { compact?: boolean }) {
+const itemClasses =
+  "flex h-9 w-full items-center gap-2.5 rounded-md px-2.5 text-left text-sm text-ink-muted transition-colors hover:bg-surface-2 hover:text-ink disabled:opacity-60 [&_svg]:size-4";
+
+/** Avatar button with account details, theme and sign out. */
+export function UserMenu() {
   const user = useCurrentUser();
   const router = useRouter();
+  const isMac = useIsMac();
   const [open, setOpen] = useState(false);
   const [leaving, setLeaving] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
@@ -46,47 +52,46 @@ export function UserMenu({ compact = false }: { compact?: boolean }) {
         onClick={() => setOpen((value) => !value)}
         aria-haspopup="menu"
         aria-expanded={open}
-        aria-label={compact ? `Account: ${user.name}` : undefined}
-        className={cn(
-          "flex items-center gap-3 rounded-xl text-left transition-colors hover:bg-surface-2",
-          compact ? "size-9 justify-center" : "w-full p-2",
-        )}
+        aria-label={`Account: ${user.name}`}
+        className="flex size-8 items-center justify-center rounded-full bg-surface-3 text-xs font-semibold text-ink shadow-[0_0_0_1px_var(--line)] transition-shadow hover:shadow-[0_0_0_1px_var(--line-hover)]"
       >
-        <span className="flex size-8 shrink-0 items-center justify-center rounded-full bg-brand text-xs font-semibold text-on-brand shadow-[0_0_0_3px_var(--brand-tint)]">
-          {initials(user)}
-        </span>
-        {!compact && (
-          <>
-            <span className="min-w-0 flex-1">
-              <span className="block truncate text-sm font-medium text-ink">{user.name}</span>
-              <span className="block truncate text-xs text-ink-faint">{user.email}</span>
-            </span>
-            <ChevronDown className={cn("size-4 shrink-0 text-ink-faint transition-transform", open && "rotate-180")} aria-hidden />
-          </>
-        )}
+        {initials(user)}
       </button>
 
       {open && (
         <div
           role="menu"
-          className={cn(
-            "absolute z-40 min-w-56 rounded-xl bg-surface p-1.5 shadow-pop animate-pop",
-            compact ? "top-full right-0 mt-2" : "bottom-full left-0 mb-2 w-full",
-          )}
+          className="absolute top-full right-0 z-40 mt-2 w-64 rounded-xl bg-surface p-1.5 shadow-pop animate-pop"
         >
-          <div className="px-2.5 py-2">
+          <div className="px-2.5 pt-1.5 pb-2">
             <p className="truncate text-sm font-medium text-ink">{user.name}</p>
-            <p className="truncate text-xs text-ink-faint">{user.email}</p>
+            <p className="truncate text-[13px] text-ink-muted">{user.email}</p>
           </div>
           <div className="my-1 h-px bg-line" />
+          <NavLink href="/" role="menuitem" onClick={() => setOpen(false)} className={itemClasses}>
+            <LayoutDashboard aria-hidden />
+            Overview
+          </NavLink>
           <button
             type="button"
             role="menuitem"
-            onClick={leave}
-            disabled={leaving}
-            className="flex w-full items-center gap-2.5 rounded-lg px-2.5 py-2 text-left text-sm text-ink hover:bg-surface-2 disabled:opacity-60"
+            onClick={() => {
+              setOpen(false);
+              openPalette();
+            }}
+            className={itemClasses}
           >
-            <LogOut className="size-4 text-ink-muted" aria-hidden />
+            <Search aria-hidden />
+            <span className="flex-1">Command menu</span>
+            <kbd className="font-mono text-[11px] text-ink-faint">{isMac ? "⌘K" : "Ctrl K"}</kbd>
+          </button>
+          <div className="flex h-10 items-center justify-between gap-3 px-2.5 text-sm text-ink-muted">
+            Theme
+            <ThemeToggle />
+          </div>
+          <div className="my-1 h-px bg-line" />
+          <button type="button" role="menuitem" onClick={leave} disabled={leaving} className={itemClasses}>
+            <LogOut aria-hidden />
             {leaving ? "Signing out…" : "Sign out"}
           </button>
         </div>

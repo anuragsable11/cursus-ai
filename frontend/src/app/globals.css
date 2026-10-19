@@ -1,135 +1,125 @@
 @import "tailwindcss";
 
 /* ---------------------------------------------------------------------------
-   Design tokens. Light is the default; dark follows the system setting unless
-   the user picks a theme (data-theme on <html>, set before first paint).
+   Design tokens. A monochrome system in the spirit of Geist: hairline borders
+   instead of shadows, black-on-white actions, and color reserved for status.
+   Light is the default; dark follows the system setting unless the user picks
+   a theme (data-theme on <html>, set before first paint).
    --------------------------------------------------------------------------- */
 
 :root {
   color-scheme: light;
 
-  --canvas: #f5f5f2;
+  --canvas: #fafafa;
   --surface: #ffffff;
-  --surface-2: #f2f2ee;
-  --surface-3: #e8e8e3;
-  --line: rgb(20 20 28 / 0.08);
-  --line-strong: rgb(20 20 28 / 0.14);
+  --surface-2: #f2f2f2;
+  --surface-3: #ebebeb;
+  --line: rgb(0 0 0 / 0.08);
+  --line-strong: rgb(0 0 0 / 0.14);
+  --line-hover: rgb(0 0 0 / 0.26);
 
-  --ink: #15161b;
-  --ink-muted: #5b5f6e;
-  --ink-faint: #868a97;
+  --ink: #171717;
+  --ink-muted: #666666;
+  --ink-faint: #7a7a7a;
 
-  --brand: #5b45e6;
-  --brand-hover: #4c38d1;
-  --brand-ink: #4a36c9;
-  --brand-tint: rgb(91 69 230 / 0.08);
-  --brand-tint-strong: rgb(91 69 230 / 0.16);
+  /* The primary color is the ink itself: black actions on white. */
+  --brand: #171717;
+  --brand-hover: #383838;
   --on-brand: #ffffff;
 
-  /* Decorative only: gradients, glows and celebration. Never carries meaning. */
-  --accent-2: #0ea5c6;
+  /* Blue is for links, focus and information only. */
+  --accent: #0070f3;
+  --accent-ink: #0062d1;
+  --accent-tint: rgb(0 112 243 / 0.07);
 
-  /* Status palette: fixed steps, always paired with an icon or label. */
-  --good: #0ca30c;
-  --good-tint: rgb(12 163 12 / 0.1);
-  --warning: #fab219;
-  --warning-tint: rgb(250 178 25 / 0.14);
-  --serious: #ec835a;
-  --serious-tint: rgb(236 131 90 / 0.14);
-  --critical: #d03b3b;
-  --critical-tint: rgb(208 59 59 / 0.1);
+  /* Status palette: always paired with an icon or a written label. */
+  --good: #16a34a;
+  --good-tint: rgb(22 163 74 / 0.08);
+  --warning: #f5a623;
+  --warning-tint: rgb(245 166 35 / 0.1);
+  --serious: #f76b15;
+  --serious-tint: rgb(247 107 21 / 0.08);
+  --critical: #e5484d;
+  --critical-tint: rgb(229 72 77 / 0.07);
 
-  --elev-card:
-    0 0 0 1px rgb(20 20 28 / 0.055), 0 1px 2px rgb(20 20 28 / 0.04), 0 6px 16px -6px rgb(20 20 28 / 0.06);
-  --elev-raised:
-    0 0 0 1px rgb(20 20 28 / 0.06), 0 2px 4px rgb(20 20 28 / 0.04), 0 18px 40px -12px rgb(20 20 28 / 0.16);
-  --elev-pop: 0 24px 60px -16px rgb(20 20 28 / 0.28), 0 0 0 1px rgb(20 20 28 / 0.07);
-  --highlight: inset 0 1px 0 rgb(255 255 255 / 0.9);
-
-  --aurora-1: rgb(91 69 230 / 0.16);
-  --aurora-2: rgb(14 165 198 / 0.12);
-  --grain-opacity: 0.06;
-  --glow: radial-gradient(60% 50% at 50% 0%, rgb(91 69 230 / 0.1), transparent 70%);
+  --elev-card: 0 1px 2px rgb(0 0 0 / 0.04);
+  --elev-pop:
+    0 0 0 1px rgb(0 0 0 / 0.08), 0 4px 8px -4px rgb(0 0 0 / 0.04), 0 16px 24px -8px rgb(0 0 0 / 0.1);
+  --field-ring: rgb(0 0 0 / 0.08);
 }
 
 @media (prefers-color-scheme: dark) {
   :root:not([data-theme="light"]) {
     color-scheme: dark;
 
-    --canvas: #0a0b0f;
-    --surface: #121319;
-    --surface-2: #181a22;
-    --surface-3: #21232d;
-    --line: rgb(255 255 255 / 0.07);
-    --line-strong: rgb(255 255 255 / 0.13);
+    --canvas: #000000;
+    --surface: #0a0a0a;
+    --surface-2: #1a1a1a;
+    --surface-3: #242424;
+    --line: rgb(255 255 255 / 0.12);
+    --line-strong: rgb(255 255 255 / 0.18);
+    --line-hover: rgb(255 255 255 / 0.32);
 
-    --ink: #eef0f4;
-    --ink-muted: #a0a5b4;
-    --ink-faint: #6f7485;
+    --ink: #ededed;
+    --ink-muted: #a1a1a1;
+    --ink-faint: #8f8f8f;
 
-    --brand: #8d7eff;
-    --brand-hover: #a092ff;
-    --brand-ink: #b8afff;
-    --brand-tint: rgb(141 126 255 / 0.12);
-    --brand-tint-strong: rgb(141 126 255 / 0.22);
-    --on-brand: #0a0b0f;
+    --brand: #ededed;
+    --brand-hover: #cccccc;
+    --on-brand: #0a0a0a;
 
-    --accent-2: #38d6f0;
+    --accent: #3291ff;
+    --accent-ink: #52a8ff;
+    --accent-tint: rgb(50 145 255 / 0.1);
 
-    --good-tint: rgb(12 163 12 / 0.16);
-    --warning-tint: rgb(250 178 25 / 0.16);
-    --serious-tint: rgb(236 131 90 / 0.16);
-    --critical-tint: rgb(208 59 59 / 0.16);
+    --good: #2fbf71;
+    --good-tint: rgb(47 191 113 / 0.1);
+    --warning-tint: rgb(245 166 35 / 0.12);
+    --serious: #ff8b3e;
+    --serious-tint: rgb(255 139 62 / 0.1);
+    --critical: #ff6166;
+    --critical-tint: rgb(255 97 102 / 0.1);
 
-    --elev-card: 0 0 0 1px rgb(255 255 255 / 0.06), 0 8px 24px -12px rgb(0 0 0 / 0.6);
-    --elev-raised: 0 0 0 1px rgb(255 255 255 / 0.09), 0 24px 48px -16px rgb(0 0 0 / 0.8);
-    --elev-pop: 0 28px 64px -12px rgb(0 0 0 / 0.75), 0 0 0 1px rgb(255 255 255 / 0.09);
-    --highlight: inset 0 1px 0 rgb(255 255 255 / 0.05);
-
-    --aurora-1: rgb(141 126 255 / 0.16);
-    --aurora-2: rgb(56 214 240 / 0.08);
-    --grain-opacity: 0.05;
-    --glow: radial-gradient(60% 50% at 50% 0%, rgb(141 126 255 / 0.12), transparent 70%);
+    --elev-card: 0 1px 2px rgb(0 0 0 / 0.4);
+    --elev-pop: 0 0 0 1px rgb(255 255 255 / 0.14), 0 16px 32px -8px rgb(0 0 0 / 0.7);
+    --field-ring: rgb(255 255 255 / 0.1);
   }
 }
 
 :root[data-theme="dark"] {
   color-scheme: dark;
 
-  --canvas: #0a0b0f;
-  --surface: #121319;
-  --surface-2: #181a22;
-  --surface-3: #21232d;
-  --line: rgb(255 255 255 / 0.07);
-  --line-strong: rgb(255 255 255 / 0.13);
+  --canvas: #000000;
+  --surface: #0a0a0a;
+  --surface-2: #1a1a1a;
+  --surface-3: #242424;
+  --line: rgb(255 255 255 / 0.12);
+  --line-strong: rgb(255 255 255 / 0.18);
+  --line-hover: rgb(255 255 255 / 0.32);
 
-  --ink: #eef0f4;
-  --ink-muted: #a0a5b4;
-  --ink-faint: #6f7485;
+  --ink: #ededed;
+  --ink-muted: #a1a1a1;
+  --ink-faint: #8f8f8f;
 
-  --brand: #8d7eff;
-  --brand-hover: #a092ff;
-  --brand-ink: #b8afff;
-  --brand-tint: rgb(141 126 255 / 0.12);
-  --brand-tint-strong: rgb(141 126 255 / 0.22);
-  --on-brand: #0a0b0f;
+  --brand: #ededed;
+  --brand-hover: #cccccc;
+  --on-brand: #0a0a0a;
 
-  --accent-2: #38d6f0;
+  --accent: #3291ff;
+  --accent-ink: #52a8ff;
+  --accent-tint: rgb(50 145 255 / 0.1);
 
-  --good-tint: rgb(12 163 12 / 0.16);
-  --warning-tint: rgb(250 178 25 / 0.16);
-  --serious-tint: rgb(236 131 90 / 0.16);
-  --critical-tint: rgb(208 59 59 / 0.16);
+  --good: #2fbf71;
+  --good-tint: rgb(47 191 113 / 0.1);
+  --warning-tint: rgb(245 166 35 / 0.12);
+  --serious: #ff8b3e;
+  --serious-tint: rgb(255 139 62 / 0.1);
+  --critical: #ff6166;
+  --critical-tint: rgb(255 97 102 / 0.1);
 
-  --elev-card: 0 0 0 1px rgb(255 255 255 / 0.06), 0 8px 24px -12px rgb(0 0 0 / 0.6);
-  --elev-raised: 0 0 0 1px rgb(255 255 255 / 0.09), 0 24px 48px -16px rgb(0 0 0 / 0.8);
-  --elev-pop: 0 28px 64px -12px rgb(0 0 0 / 0.75), 0 0 0 1px rgb(255 255 255 / 0.09);
-  --highlight: inset 0 1px 0 rgb(255 255 255 / 0.05);
-
-  --aurora-1: rgb(141 126 255 / 0.16);
-  --aurora-2: rgb(56 214 240 / 0.08);
-  --grain-opacity: 0.05;
-  --glow: radial-gradient(60% 50% at 50% 0%, rgb(141 126 255 / 0.12), transparent 70%);
+  --elev-card: 0 1px 2px rgb(0 0 0 / 0.4);
+  --elev-pop: 0 0 0 1px rgb(255 255 255 / 0.14), 0 16px 32px -8px rgb(0 0 0 / 0.7);
+  --field-ring: rgb(255 255 255 / 0.1);
 }
 
 @theme inline {
@@ -139,6 +129,7 @@
   --color-surface-3: var(--surface-3);
   --color-line: var(--line);
   --color-line-strong: var(--line-strong);
+  --color-line-hover: var(--line-hover);
 
   --color-ink: var(--ink);
   --color-ink-muted: var(--ink-muted);
@@ -146,11 +137,11 @@
 
   --color-brand: var(--brand);
   --color-brand-hover: var(--brand-hover);
-  --color-brand-ink: var(--brand-ink);
-  --color-brand-tint: var(--brand-tint);
-  --color-brand-tint-strong: var(--brand-tint-strong);
   --color-on-brand: var(--on-brand);
-  --color-accent-2: var(--accent-2);
+
+  --color-accent: var(--accent);
+  --color-accent-ink: var(--accent-ink);
+  --color-accent-tint: var(--accent-tint);
 
   --color-good: var(--good);
   --color-good-tint: var(--good-tint);
@@ -161,23 +152,26 @@
   --color-critical: var(--critical);
   --color-critical-tint: var(--critical-tint);
 
-  --shadow-card: var(--elev-card), var(--highlight);
-  --shadow-raised: var(--elev-raised), var(--highlight);
+  --shadow-card: var(--elev-card);
   --shadow-pop: var(--elev-pop);
 
+  /* Form fields draw their border as a ring so focus can grow it in place. */
+  --shadow-field: 0 0 0 1px var(--line-strong);
+  --shadow-field-hover: 0 0 0 1px var(--line-hover);
+  --shadow-field-focus: 0 0 0 1px var(--ink-faint), 0 0 0 4px var(--field-ring);
+
   --font-sans: var(--font-geist-sans), ui-sans-serif, system-ui, sans-serif;
-  --font-display: var(--font-fraunces), Georgia, "Times New Roman", serif;
   --font-mono: var(--font-geist-mono), ui-monospace, monospace;
 
-  --animate-rise: rise 0.5s cubic-bezier(0.2, 0.8, 0.2, 1) both;
-  --animate-fade: fade 0.25s ease-out both;
-  --animate-pop: pop 0.18s cubic-bezier(0.2, 0.8, 0.2, 1) both;
+  --animate-rise: rise 0.35s cubic-bezier(0.2, 0.8, 0.2, 1) both;
+  --animate-fade: fade 0.2s ease-out both;
+  --animate-pop: pop 0.16s cubic-bezier(0.2, 0.8, 0.2, 1) both;
 }
 
 @keyframes rise {
   from {
     opacity: 0;
-    transform: translateY(10px);
+    transform: translateY(4px);
   }
   to {
     opacity: 1;
@@ -197,7 +191,7 @@
 @keyframes pop {
   from {
     opacity: 0;
-    transform: translateY(-6px) scale(0.98);
+    transform: translateY(-4px) scale(0.98);
   }
   to {
     opacity: 1;
@@ -220,158 +214,55 @@
   }
 }
 
-@keyframes flow {
+@keyframes nav-mark {
   to {
-    stroke-dashoffset: -40;
-  }
-}
-
-/* ---------------------------------------------------------------------------
-   Base
-   --------------------------------------------------------------------------- */
-
-html {
-  font-size: 16px;
-}
-
-body {
-  background-color: var(--canvas);
-  color: var(--ink);
-  font-family: var(--font-geist-sans), ui-sans-serif, system-ui, sans-serif;
-  -webkit-font-smoothing: antialiased;
-  text-rendering: optimizeLegibility;
-  font-feature-settings: "ss01", "cv11";
-}
-
-/* Film grain on the canvas, so flat backgrounds read as material. It sits
-   behind content with normal blending: a blended overlay above the UI
-   forces full-page repaints, which stalls on CPU-bound machines. */
-body::after {
-  content: "";
-  position: fixed;
-  inset: 0;
-  z-index: -1;
-  pointer-events: none;
-  opacity: var(--grain-opacity);
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 0.5 0 0 0 0 0.5 0 0 0 0 0.5 0 0 0 1 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
-}
-
-.font-display {
-  font-optical-sizing: auto;
-  font-variation-settings: "SOFT" 30;
-}
-
-::selection {
-  background: var(--brand-tint-strong);
-}
-
-:focus-visible {
-  outline: 2px solid var(--brand);
-  outline-offset: 2px;
-}
-
-details > summary {
-  list-style: none;
-}
-details > summary::-webkit-details-marker {
-  display: none;
-}
-
-/* ---------------------------------------------------------------------------
-   Premium surface effects
-   --------------------------------------------------------------------------- */
-
-@layer components {
-  /* Soft colored light behind the content area. */
-  .aurora {
-    background:
-      radial-gradient(40rem 22rem at 85% -6rem, var(--aurora-1), transparent 70%),
-      radial-gradient(34rem 20rem at 30% -10rem, var(--aurora-2), transparent 70%);
-  }
-
-  /* A 1px gradient edge that catches the light, drawn with a mask. */
-  .edge-glow {
-    position: relative;
-    isolation: isolate;
-  }
-  .edge-glow::before {
-    content: "";
-    position: absolute;
-    inset: 0;
-    z-index: -1;
-    padding: 1px;
-    border-radius: inherit;
-    background: linear-gradient(
-      135deg,
-      color-mix(in oklab, var(--brand) 85%, transparent),
-      transparent 38%,
-      transparent 62%,
-      color-mix(in oklab, var(--accent-2) 70%, transparent)
-    );
-    -webkit-mask:
-      linear-gradient(#000 0 0) content-box,
-      linear-gradient(#000 0 0);
-    -webkit-mask-composite: xor;
-    mask-composite: exclude;
-    pointer-events: none;
-  }
-
-  /* Light that follows the cursor. Coordinates come from --mx / --my. */
-  .spotlight {
-    position: relative;
-    isolation: isolate;
-    overflow: hidden;
-  }
-  .spotlight::after {
-    content: "";
-    position: absolute;
-    inset: 0;
-    z-index: -1;
-    border-radius: inherit;
-    opacity: 0;
-    transition: opacity 0.3s ease;
-    background: radial-gradient(
-      22rem circle at var(--mx, 50%) var(--my, 0%),
-      color-mix(in oklab, var(--brand) 12%, transparent),
-      transparent 60%
-    );
-    pointer-events: none;
-  }
-  .spotlight:hover::after {
+    width: 1.5rem;
+    margin-inline: 1rem 0.25rem;
     opacity: 1;
   }
+}
 
-  .btn-primary {
-    background-image: linear-gradient(
-      180deg,
-      color-mix(in oklab, var(--brand) 82%, white),
-      var(--brand) 55%
-    );
-    box-shadow:
-      inset 0 1px 0 rgb(255 255 255 / 0.25),
-      inset 0 -1px 0 rgb(0 0 0 / 0.12),
-      0 1px 2px rgb(0 0 0 / 0.12),
-      0 8px 20px -8px var(--brand);
-  }
-  .btn-primary:hover {
-    background-image: linear-gradient(
-      180deg,
-      color-mix(in oklab, var(--brand-hover) 78%, white),
-      var(--brand-hover) 55%
-    );
-    box-shadow:
-      inset 0 1px 0 rgb(255 255 255 / 0.3),
-      inset 0 -1px 0 rgb(0 0 0 / 0.12),
-      0 1px 2px rgb(0 0 0 / 0.12),
-      0 12px 28px -8px var(--brand);
+/* ---------------------------------------------------------------------------
+   Base. Layered so utilities (outline-none and friends) can override it.
+   --------------------------------------------------------------------------- */
+
+@layer base {
+  html {
+    font-size: 16px;
   }
 
+  body {
+    background-color: var(--canvas);
+    color: var(--ink);
+    font-family: var(--font-geist-sans), ui-sans-serif, system-ui, sans-serif;
+    -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
+  }
+
+  ::selection {
+    background: var(--accent-tint);
+  }
+
+  :focus-visible {
+    outline: 2px solid var(--accent);
+    outline-offset: 2px;
+  }
+
+  details > summary {
+    list-style: none;
+  }
+  details > summary::-webkit-details-marker {
+    display: none;
+  }
+}
+
+@layer components {
   .shimmer {
     background-color: var(--surface-2);
     background-image: linear-gradient(
       100deg,
       transparent 30%,
-      color-mix(in oklab, var(--surface) 70%, transparent) 50%,
+      color-mix(in oklab, var(--surface) 60%, transparent) 50%,
       transparent 70%
     );
     background-size: 200% 100%;
@@ -380,28 +271,23 @@ details > summary::-webkit-details-marker {
 
   .meter-fill {
     transform-origin: left center;
-    animation: grow 0.9s cubic-bezier(0.2, 0.8, 0.2, 1) both;
+    animation: grow 0.8s cubic-bezier(0.2, 0.8, 0.2, 1) both;
   }
 
-  .stagger > * {
-    animation: rise 0.5s cubic-bezier(0.2, 0.8, 0.2, 1) both;
+  /* The logo slides into the tab bar once the header above it scrolls away.
+     Browsers without scroll-driven animations simply keep it hidden. */
+  .nav-mark {
+    width: 0;
+    margin-inline: 0;
+    opacity: 0;
+    overflow: hidden;
   }
-  .stagger > *:nth-child(2) {
-    animation-delay: 60ms;
-  }
-  .stagger > *:nth-child(3) {
-    animation-delay: 120ms;
-  }
-  .stagger > *:nth-child(4) {
-    animation-delay: 180ms;
-  }
-  .stagger > *:nth-child(n + 5) {
-    animation-delay: 240ms;
-  }
-
-  .flow-dash {
-    stroke-dasharray: 6 14;
-    animation: flow 1.6s linear infinite;
+  @supports (animation-timeline: scroll()) {
+    .nav-mark {
+      animation: nav-mark linear both;
+      animation-timeline: scroll(root);
+      animation-range: 40px 64px;
+    }
   }
 }
 
@@ -420,28 +306,28 @@ details > summary::-webkit-details-marker {
 }
 
 ::view-transition-old(.nav-forward) {
-  --slide-offset: -40px;
+  --slide-offset: -24px;
   animation:
-    140ms ease-in both fade reverse,
-    320ms cubic-bezier(0.4, 0, 0.2, 1) both slide reverse;
+    120ms ease-in both fade reverse,
+    280ms cubic-bezier(0.4, 0, 0.2, 1) both slide reverse;
 }
 ::view-transition-new(.nav-forward) {
-  --slide-offset: 40px;
+  --slide-offset: 24px;
   animation:
-    220ms ease-out 120ms both fade,
-    320ms cubic-bezier(0.4, 0, 0.2, 1) both slide;
+    200ms ease-out 100ms both fade,
+    280ms cubic-bezier(0.4, 0, 0.2, 1) both slide;
 }
 ::view-transition-old(.nav-back) {
-  --slide-offset: 40px;
+  --slide-offset: 24px;
   animation:
-    140ms ease-in both fade reverse,
-    320ms cubic-bezier(0.4, 0, 0.2, 1) both slide reverse;
+    120ms ease-in both fade reverse,
+    280ms cubic-bezier(0.4, 0, 0.2, 1) both slide reverse;
 }
 ::view-transition-new(.nav-back) {
-  --slide-offset: -40px;
+  --slide-offset: -24px;
   animation:
-    220ms ease-out 120ms both fade,
-    320ms cubic-bezier(0.4, 0, 0.2, 1) both slide;
+    200ms ease-out 100ms both fade,
+    280ms cubic-bezier(0.4, 0, 0.2, 1) both slide;
 }
 
 @keyframes slide {
@@ -487,22 +373,13 @@ details > summary::-webkit-details-marker {
     --ink: #111;
     --ink-muted: #444;
     --ink-faint: #777;
-    --brand: #4a36c9;
-    --brand-ink: #4a36c9;
-    --brand-tint: #f1effd;
+    --brand: #111;
+    --on-brand: #fff;
     --elev-card: none;
-    --elev-raised: none;
     --elev-pop: none;
-    --highlight: 0 0 #0000;
-    --glow: none;
   }
   body {
     background: #fff;
-  }
-  body::after,
-  .aurora,
-  .edge-glow::before {
-    display: none !important;
   }
   .print-hidden {
     display: none !important;

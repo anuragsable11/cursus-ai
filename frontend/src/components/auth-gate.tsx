@@ -30,7 +30,7 @@ function Splash() {
   return (
     <div className="flex min-h-screen items-center justify-center bg-canvas" aria-busy="true" aria-live="polite">
       <div className="flex flex-col items-center gap-4 animate-fade">
-        <BrandMark className="size-10 drop-shadow-[0_8px_18px_color-mix(in_oklab,var(--brand)_45%,transparent)]" />
+        <BrandMark className="size-9" />
         <p className="text-sm text-ink-faint">Checking your session…</p>
       </div>
     </div>
@@ -48,20 +48,26 @@ function OfflineScreen({ message }: { message: string }) {
 
   return (
     <div className="flex min-h-screen items-center justify-center bg-canvas px-4">
-      <div className="w-full max-w-md rounded-2xl bg-surface p-8 text-center shadow-raised animate-rise">
-        <span className="mx-auto flex size-12 items-center justify-center rounded-2xl bg-critical-tint text-critical">
-          <ServerOff className="size-5" aria-hidden />
-        </span>
-        <h1 className="mt-5 font-display text-2xl font-medium text-ink">Can&apos;t reach the backend</h1>
-        <p className="mt-2 text-sm leading-6 text-ink-muted">{message}</p>
-        <p className="mt-4 rounded-xl bg-surface-2 p-3 text-left text-xs leading-6 text-ink-muted">
-          Expected at <span className="font-mono">{API_URL}</span>. In the{" "}
-          <span className="font-mono">backend</span> folder run{" "}
-          <code className="rounded-md bg-surface px-1.5 py-0.5 font-mono shadow-card">uvicorn main:app --reload</code>
-        </p>
-        <Button className="mt-6" onClick={retry} loading={retrying} icon={<RefreshCw aria-hidden />}>
-          Try again
-        </Button>
+      <div className="w-full max-w-md overflow-hidden rounded-xl border border-line bg-surface shadow-card animate-rise">
+        <div className="p-8 text-center">
+          <span className="mx-auto flex size-10 items-center justify-center rounded-lg border border-line text-critical">
+            <ServerOff className="size-5" aria-hidden />
+          </span>
+          <h1 className="mt-4 text-xl font-semibold tracking-[-0.03em] text-ink">Can&apos;t reach the backend</h1>
+          <p className="mt-2 text-sm leading-6 text-ink-muted">{message}</p>
+          <p className="mt-5 rounded-lg border border-line bg-canvas p-3 text-left text-[13px] leading-6 text-ink-muted">
+            Expected at <span className="font-mono">{API_URL}</span>. In the{" "}
+            <span className="font-mono">backend</span> folder run{" "}
+            <code className="rounded border border-line bg-surface px-1.5 py-0.5 font-mono text-ink">
+              uvicorn main:app --reload
+            </code>
+          </p>
+        </div>
+        <div className="flex justify-end border-t border-line bg-canvas px-6 py-3">
+          <Button size="sm" onClick={retry} loading={retrying} icon={<RefreshCw aria-hidden />}>
+            Try again
+          </Button>
+        </div>
       </div>
     </div>
   );

@@ -12,21 +12,23 @@ const OPTIONS: { value: ThemeChoice; label: string; icon: ReactNode }[] = [
   { value: "dark", label: "Dark theme", icon: <Moon aria-hidden /> },
 ];
 
+/** Three-way icon switch for system, light and dark. */
 export function ThemeToggle({ className }: { className?: string }) {
   const theme = useTheme();
   return (
-    <Segmented
-      label="Theme"
-      size="sm"
-      className={className}
-      value={theme}
-      onChange={setTheme}
-      options={OPTIONS.map((option) => ({ value: option.value, label: option.label, icon: option.icon, srLabel: option.label }))}
-    />
+    <div className={className ?? "w-24"}>
+      <Segmented
+        label="Theme"
+        size="sm"
+        value={theme}
+        onChange={setTheme}
+        options={OPTIONS.map((option) => ({ value: option.value, label: option.label, icon: option.icon, srLabel: option.label }))}
+      />
+    </div>
   );
 }
 
-/** Single button that cycles themes, for tight spaces like the mobile top bar. */
+/** Single button that cycles themes, for tight spaces. */
 export function ThemeCycleButton() {
   const theme = useTheme();
   const next: ThemeChoice = theme === "system" ? "light" : theme === "light" ? "dark" : "system";
@@ -37,7 +39,7 @@ export function ThemeCycleButton() {
       onClick={() => setTheme(next)}
       aria-label={`${current.label}. Switch theme`}
       title={current.label}
-      className="flex size-9 items-center justify-center rounded-lg text-ink-muted hover:bg-surface-2 hover:text-ink [&_svg]:size-4"
+      className="flex size-8 items-center justify-center rounded-md text-ink-muted transition-colors hover:bg-surface-2 hover:text-ink [&_svg]:size-4"
     >
       {current.icon}
     </button>

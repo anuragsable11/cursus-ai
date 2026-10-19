@@ -53,7 +53,7 @@ export function RoadmapProgress({ mode, startedAt }: { mode: RoadmapMode; starte
     return (
       <Card tone="flat">
         <div className="flex items-center gap-3 text-sm text-ink-muted">
-          <LoaderCircle className="size-5 animate-spin text-brand-ink" aria-hidden />
+          <LoaderCircle className="size-4 animate-spin" aria-hidden />
           Building your roadmap…
         </div>
       </Card>
@@ -61,18 +61,31 @@ export function RoadmapProgress({ mode, startedAt }: { mode: RoadmapMode; starte
   }
 
   return (
-    <Card glow className="print-hidden animate-rise shadow-raised">
-      <div className="flex flex-wrap items-start justify-between gap-4">
-        <div className="flex min-w-0 items-start gap-3">
-          <span className="flex size-10 shrink-0 items-center justify-center rounded-xl bg-brand-tint">
-            <LoaderCircle className="size-5 animate-spin text-brand-ink" aria-hidden />
+    <Card
+      className="print-hidden animate-rise"
+      footer={
+        <>
+          <span className="text-[13px]">
+            Elapsed <LiveElapsed startedAt={startedAt} className="font-mono text-[13px] tabular-nums text-ink" /> ·
+            usually about {Math.round(AI_EXPECTED_SECONDS / 60)} minutes
           </span>
-          <div className="min-w-0">
-            <h2 className="font-semibold text-ink">Generating your AI-enhanced roadmap</h2>
-            <p ref={stageRef} className="mt-0.5 text-sm text-ink-muted" aria-live="polite">
-              {AI_STAGES[0].label}…
-            </p>
-          </div>
+          <span className="text-[13px]">Browse other pages meanwhile. We&apos;ll let you know when it&apos;s ready.</span>
+        </>
+      }
+    >
+      <div className="flex flex-wrap items-start justify-between gap-4">
+        <div className="min-w-0">
+          <p className="flex items-center gap-2 text-[13px] text-ink-muted">
+            <span className="relative flex size-2" aria-hidden>
+              <span className="absolute inline-flex size-full animate-ping rounded-full bg-warning opacity-60" />
+              <span className="relative inline-flex size-2 rounded-full bg-warning" />
+            </span>
+            Generating
+          </p>
+          <h2 className="mt-1 text-base font-semibold tracking-[-0.01em] text-ink">Your AI-enhanced roadmap</h2>
+          <p ref={stageRef} className="mt-0.5 text-sm text-ink-muted" aria-live="polite">
+            {AI_STAGES[0].label}…
+          </p>
         </div>
         <Button variant="secondary" size="sm" onClick={cancelRoadmap} icon={<Square aria-hidden />}>
           Cancel
@@ -81,7 +94,7 @@ export function RoadmapProgress({ mode, startedAt }: { mode: RoadmapMode; starte
 
       <div
         ref={trackRef}
-        className="mt-5 h-2 overflow-hidden rounded-full bg-brand-tint"
+        className="mt-5 h-1.5 overflow-hidden rounded-full bg-surface-3"
         role="progressbar"
         aria-label="Estimated progress"
         aria-valuemin={0}
@@ -90,19 +103,9 @@ export function RoadmapProgress({ mode, startedAt }: { mode: RoadmapMode; starte
       >
         <div
           ref={barRef}
-          className="relative h-full overflow-hidden rounded-full bg-linear-to-r from-brand to-[color-mix(in_oklab,var(--brand)_60%,var(--accent-2))] transition-[width] duration-1000 ease-linear"
+          className="h-full rounded-full bg-brand transition-[width] duration-1000 ease-linear"
           style={{ width: "0%" }}
-        >
-          <span className="absolute inset-0 bg-[linear-gradient(100deg,transparent_30%,rgb(255_255_255/0.35)_50%,transparent_70%)] bg-[length:200%_100%] [animation:shimmer_1.4s_linear_infinite]" />
-        </div>
-      </div>
-
-      <div className="mt-3 flex flex-wrap justify-between gap-2 text-xs text-ink-muted">
-        <span>
-          Elapsed <LiveElapsed startedAt={startedAt} className="tabular-nums text-ink" /> · usually about{" "}
-          {Math.round(AI_EXPECTED_SECONDS / 60)} minutes
-        </span>
-        <span>Browse other pages meanwhile. We&apos;ll let you know when it&apos;s ready.</span>
+        />
       </div>
     </Card>
   );

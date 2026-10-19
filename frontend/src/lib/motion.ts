@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState, type PointerEvent } from "react";
+import { useEffect, useRef, useState } from "react";
 
 function prefersReducedMotion(): boolean {
   return typeof window !== "undefined" && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
@@ -31,14 +31,6 @@ export function useCountUp(target: number, durationMs = 900): number {
   return value;
 }
 
-/** Feeds the cursor position to a `.spotlight` element. */
-export function trackSpotlight(event: PointerEvent<HTMLElement>) {
-  const target = event.currentTarget;
-  const rect = target.getBoundingClientRect();
-  target.style.setProperty("--mx", `${event.clientX - rect.left}px`);
-  target.style.setProperty("--my", `${event.clientY - rect.top}px`);
-}
-
 /** Center of an element, for anchoring celebrations to what was clicked. */
 export function centerOf(element: Element): { x: number; y: number } {
   const rect = element.getBoundingClientRect();
@@ -50,10 +42,9 @@ export function celebrate(origin?: { x: number; y: number }, amount = 110) {
   if (typeof window === "undefined" || prefersReducedMotion()) return;
 
   const styles = getComputedStyle(document.documentElement);
-  const colors = ["--brand", "--accent-2", "--brand-ink"]
+  const colors = ["--ink", "--accent", "--good", "--warning", "--serious"]
     .map((name) => styles.getPropertyValue(name).trim())
-    .filter(Boolean)
-    .concat("#ffd166");
+    .filter(Boolean);
 
   const canvas = document.createElement("canvas");
   const dpr = Math.min(window.devicePixelRatio || 1, 2);
